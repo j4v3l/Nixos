@@ -49,11 +49,3 @@ hl.gesture({
 	action = "workspace",
 })
 
--- Device Specific Configuration
-
-hl.device({
-
-	name = "epic-mouse-v1",
-
-	sensitivity = -0.5,
-})

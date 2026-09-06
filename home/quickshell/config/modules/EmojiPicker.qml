@@ -50,21 +50,6 @@ Components.LauncherView {
         copyProcess.running = true;
     }
 
-    IpcHandler {
-        target: "emoji"
-
-        function toggle(): void {
-            picker.toggle();
-        }
-
-        function open(): void {
-            picker.show();
-        }
-
-        function close(): void {
-            picker.dismiss();
-        }
-    }
 
     Process {
         id: copyProcess

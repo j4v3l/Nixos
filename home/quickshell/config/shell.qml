@@ -5,10 +5,18 @@ import Quickshell.Wayland
 
 import "components"
 import "modules"
+import "core" as Core
 
 Scope {
     id: root
-    Bar {}
+    Core.LauncherIpc {}
+    Variants {
+        model: Quickshell.screens
+        delegate: Bar {
+            required property var modelData
+            screen: modelData
+        }
+    }
     NetworkPopup {}
     BluetoothPopup {}
     BatteryPopup {}

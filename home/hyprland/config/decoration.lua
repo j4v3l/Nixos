@@ -9,7 +9,7 @@ local themePath = home .. "/.config/aurora/active-theme.lua"
 local ok, theme = pcall(dofile, themePath)
 
 if not ok or not theme then
-	local fallback = home .. "/.config/aurora/themes/catppuccin-mocha.lua"
+	local fallback = home .. "/.config/aurora/default-theme.lua"
 
 	ok, theme = pcall(dofile, fallback)
 end

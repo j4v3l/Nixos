@@ -9,6 +9,7 @@ import "../services" as Services
 
 Item {
     id: root
+    property var screen: null
 
     implicitWidth: showSeconds ? 72 : 48
     implicitHeight: Core.Theme.moduleHeight
@@ -18,7 +19,7 @@ Item {
     // Mirrors the bar's reveal: 0 while narrow, 1 while wide. Set by Bar.qml.
     property real reveal: 0
 
-    readonly property bool menuOpen: Core.PopupManager.isOpen("calendar")
+    readonly property bool menuOpen: Core.PopupManager.isOpen("calendar", root.screen)
 
     // Now playing
     //
@@ -172,6 +173,7 @@ Item {
     // exactly as it did before.
 
     NowPlaying {
+        consumerId: root.screen ? root.screen.name : "clock"
         anchors.top: timeRow.bottom
         anchors.topMargin: 2
 
@@ -199,7 +201,7 @@ Item {
 
             const p = root.mapToItem(null, 0, root.height);
 
-            Core.PopupManager.toggle("calendar", p.x + root.width / 2, p.y + Core.Theme.barMarginTop);
+            Core.PopupManager.toggle("calendar", p.x + root.width / 2, p.y + Core.Theme.barMarginTop, root.screen);
         }
     }
 }

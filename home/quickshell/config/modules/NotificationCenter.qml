@@ -9,11 +9,12 @@ import "../services" as Services
 
 Item {
     id: root
+    property var screen: null
 
     implicitWidth: 30
     implicitHeight: Core.Theme.moduleHeight
 
-    readonly property bool menuOpen: Core.PopupManager.isOpen("notifications")
+    readonly property bool menuOpen: Core.PopupManager.isOpen("notifications", root.screen)
 
     readonly property var list: Services.NotificationServer.notifications
 
@@ -147,7 +148,7 @@ Item {
 
             const p = root.mapToItem(null, 0, root.height);
 
-            Core.PopupManager.toggle("notifications", p.x + root.width / 2, p.y + Core.Theme.barMarginTop);
+            Core.PopupManager.toggle("notifications", p.x + root.width / 2, p.y + Core.Theme.barMarginTop, root.screen);
         }
     }
 

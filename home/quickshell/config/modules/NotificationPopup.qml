@@ -56,12 +56,7 @@ Components.PopupSurface {
     function copyText(text) {
         if (!text || text === "")
             return;
-        try {
-            Quickshell.clipboardText = text;
-        } catch (e) {
-            copyProc.command = ["sh", "-c", "printf %s " + JSON.stringify(text) + " | wl-copy"];
-            copyProc.running = true;
-        }
+        Services.ClipboardWriter.copy(text);
     }
 
     // Both of these live on the service so the toast overlay and this panel
@@ -74,11 +69,6 @@ Components.PopupSurface {
         return Services.NotificationServer.isCritical(n);
     }
 
-    Process {
-        id: copyProc
-
-        running: false
-    }
 
     // Content
 

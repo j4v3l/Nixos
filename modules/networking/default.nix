@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   networking = {
@@ -11,13 +11,13 @@
   systemd.services.NetworkManager-wait-online.enable = false;
 
   services.openssh = {
-    enable = true;
+    enable = config.aurora.ssh.enable;
 
     # Socket activated: sshd is launched by the first incoming connection rather than occupying a slot in the boot path.
     startWhenNeeded = true;
 
     settings = {
-      PasswordAuthentication = true;
+      PasswordAuthentication = config.aurora.ssh.passwordAuthentication;
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "no";
 

@@ -25,12 +25,6 @@ hl.env("_JAVA_AWT_WM_NONREPARENTING", "1")
 
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
--- NVIDIA (Uncomment if using NVIDIA)
-
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
--- hl.env("GBM_BACKEND", "nvidia-drm") hl.env("__VK_LAYER_NV_optimus", "NVIDIA_only")
-
 -- Default Applications
 
 hl.env("EDITOR", "nvim")

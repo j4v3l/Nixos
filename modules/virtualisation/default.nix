@@ -1,10 +1,11 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
-  vars = import ../../lib/variables.nix;
+  vars = config.aurora.identity;
 in
 
 {
+  config = lib.mkIf config.aurora.features.virtualisation {
   # Virtualisation
 
   virtualisation.libvirtd = {
@@ -34,4 +35,5 @@ in
   users.users.${vars.username}.extraGroups = [
     "libvirtd"
   ];
+  };
 }

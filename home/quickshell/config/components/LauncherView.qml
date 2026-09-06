@@ -14,6 +14,7 @@ import "../core" as Core
 Item {
     id: root
 
+    property var screen: null
     property string launcherId: ""
     property string promptIcon: Core.Icons.search
     property string placeholder: "Search"
@@ -78,7 +79,7 @@ Item {
     // animation on the same dimension is what made the old popup look unstable.
     readonly property int viewHeight: Math.max(root.cardMinHeight, Math.min(root.cardMaxHeight, root.targetCardHeight))
 
-    readonly property bool open: Core.PopupManager.isOpen(root.launcherId)
+    readonly property bool open: Core.PopupManager.isOpen(root.launcherId, root.screen)
 
     property real wheelAccumulator: 0
 
@@ -99,11 +100,11 @@ Item {
     }
 
     function show() {
-        Core.PopupManager.open(root.launcherId, 0, 0);
+        Core.PopupManager.open(root.launcherId, 0, 0, root.screen);
     }
 
     function toggle() {
-        Core.PopupManager.toggle(root.launcherId, 0, 0);
+        Core.PopupManager.toggle(root.launcherId, 0, 0, root.screen);
     }
 
     function dismiss() {

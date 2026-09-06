@@ -1,5 +1,5 @@
 {
-  description = "subha279 NixOS Configuration";
+  description = "Aurora NixOS desktop and laptop configuration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -26,47 +26,23 @@
 
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      stylix,
-      apple-fonts,
-      zen-browser,
-      ...
-    }:
+  outputs = inputs@{ nixpkgs, ... }:
     let
-      vars = import ./lib/variables.nix;
-    in
-    {
-      nixosConfigurations = {
-        laptop = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-
-          modules = [
-            {
-              nixpkgs.overlays = [
-                apple-fonts.overlays.default
-                (final: prev: {
-                  zen-browser = zen-browser.packages.${final.system}.default;
-                })
-              ];
-            }
-
-            stylix.nixosModules.stylix
-            ./hosts/laptop
-
-            home-manager.nixosModules.home-manager
-
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-
-              home-manager.users.${vars.username} = import ./home;
-            }
-          ];
-        };
+      mkHost = import ./lib/mk-host.nix { inherit inputs; };
+      hosts = nixpkgs.lib.filterAttrs (name: kind:
+        kind == "directory" && builtins.pathExists (./hosts + "/${name}/settings.json")
+      ) (builtins.readDir ./hosts);
+    in {
+      nixosConfigurations = builtins.mapAttrs (name: _: mkHost {
+        inherit name;
+        settings = builtins.fromJSON (builtins.readFile (./hosts + "/${name}/settings.json"));
+        hostModule = ./hosts + "/${name}";
+      }) hosts;
+      templates.desktop = {
+        path = ./templates/desktop;
+        description = "Desktop host settings; run setup.sh configure to detect hardware.";
       };
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      checks.x86_64-linux = import ./tests/checks.nix { inherit inputs mkHost; };
     };
 }

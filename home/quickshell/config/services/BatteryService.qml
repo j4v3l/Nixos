@@ -394,17 +394,13 @@ Singleton {
 
     function openPowerSettings() {
         // Try the usual suspects; the first one installed wins.
-        root.launch(["sh", "-c", "command -v gnome-control-center >/dev/null " + "&& gnome-control-center power " + "|| command -v xfce4-power-manager-settings " + ">/dev/null && xfce4-power-manager-settings " + "|| command -v powerprofilesctl >/dev/null " + "&& powerprofilesctl list"]);
+        root.launch(["kitty", "--", "powerprofilesctl", "list"]);
     }
 
     function copySummary() {
         const text = root.percentInt + "% — " + root.stateLabel;
 
-        try {
-            Quickshell.clipboardText = text;
-        } catch (e) {
-            root.launch(["sh", "-c", "printf %s " + JSON.stringify(text) + " | wl-copy"]);
-        }
+        ClipboardWriter.copy(text);
     }
 
     // Lifecycle

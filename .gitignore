@@ -83,3 +83,7 @@ build/
 
 # Installer backups
 .installer-backups/
+
+.setup-backups/
+.setup-host
+reports/

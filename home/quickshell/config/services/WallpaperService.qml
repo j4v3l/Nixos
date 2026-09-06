@@ -41,7 +41,7 @@ QtObject {
         command: [
             "sh",
             "-c",
-            "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \\) -printf '%f\\t%p\\n' 2>/dev/null | sort -f",
+            "find -L \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \\) -printf '%f\\t%p\\n' 2>/dev/null | sort -f",
             "sh",
             root.wallpaperDirectory
         ]
@@ -128,7 +128,7 @@ QtObject {
         Quickshell.execDetached([
             "sh",
             "-c",
-            "mkdir -p \"$(dirname \"$2\")\" && awww img \"$1\" --transition-type random --transition-fps 180 --transition-step 30 && printf '%s\\n' \"$1\" > \"$2\"",
+            "mkdir -p \"$(dirname \"$2\")\" && awww img \"$1\" --transition-type random --transition-fps 60 --transition-step 30 && printf '%s\\n' \"$1\" > \"$2\"",
             "sh",
             path,
             root.statePath

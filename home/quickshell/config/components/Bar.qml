@@ -88,6 +88,7 @@ PanelWindow {
     // later than `PopupManager.current` - long enough for the bar to start
     // expanding before the popup takes the surface over.
     readonly property bool modulePopupOpen: {
+        if (!root.screen || Core.PopupManager.screenName !== root.screen.name) return false;
         const id = Core.PopupManager.current;
 
         if (id === "")
@@ -344,6 +345,7 @@ PanelWindow {
             visible: root.osdMix < 0.99 && !root.launcherOpen
 
             Modules.NotificationCenter {
+                screen: root.screen
                 id: notificationCenter
 
                 Layout.preferredWidth: 30 * root.reveal
@@ -360,6 +362,7 @@ PanelWindow {
             }
 
             Modules.Volume {
+                screen: root.screen
                 Layout.preferredWidth: 58 * root.reveal
 
                 Layout.preferredHeight: Core.Theme.moduleHeight
@@ -378,16 +381,18 @@ PanelWindow {
 
                 Layout.preferredHeight: Core.Theme.moduleHeight
 
-                visible: root.modulesVisible
+                visible: root.modulesVisible && Services.BrightnessService.available
 
                 opacity: root.reveal
             }
 
             Separator {
                 reveal: root.reveal
+                available: Services.BrightnessService.available
             }
 
             Modules.Clock {
+                screen: root.screen
                 id: clockModule
 
                 Layout.preferredWidth: clockModule.implicitWidth
@@ -402,6 +407,7 @@ PanelWindow {
             }
 
             Modules.Network {
+                screen: root.screen
                 Layout.preferredWidth: 30 * root.reveal
 
                 Layout.preferredHeight: Core.Theme.moduleHeight
@@ -416,20 +422,23 @@ PanelWindow {
             }
 
             Modules.Bluetooth {
+                screen: root.screen
                 Layout.preferredWidth: 30 * root.reveal
 
                 Layout.preferredHeight: Core.Theme.moduleHeight
 
-                visible: root.modulesVisible
+                visible: root.modulesVisible && Services.BluetoothService.available
 
                 opacity: root.reveal
             }
 
             Separator {
                 reveal: root.reveal
+                available: Services.BluetoothService.available
             }
 
             Modules.Battery {
+                screen: root.screen
                 Layout.preferredWidth: 58 * root.reveal
 
                 Layout.preferredHeight: Core.Theme.moduleHeight
@@ -443,6 +452,18 @@ PanelWindow {
                 reveal: root.reveal
 
                 available: Services.BatteryService.available
+            }
+
+            Modules.Power {
+                screen: root.screen
+                visible: root.modulesVisible && !Services.BatteryService.available && Services.BatteryService.profilesAvailable
+                Layout.preferredWidth: 30 * root.reveal
+                Layout.preferredHeight: Core.Theme.moduleHeight
+                opacity: root.reveal
+            }
+            Separator {
+                reveal: root.reveal
+                available: !Services.BatteryService.available && Services.BatteryService.profilesAvailable
             }
 
             Modules.Tray {
@@ -474,30 +495,35 @@ PanelWindow {
             visible: root.launcherOpen
 
             Modules.AppLauncher {
+                screen: root.screen
                 id: appLauncher
 
                 anchors.fill: parent
             }
 
             Modules.WallpaperPicker {
+                screen: root.screen
                 id: wallpaperPicker
 
                 anchors.fill: parent
             }
 
             Modules.ThemePicker {
+                screen: root.screen
                 id: themePicker
 
                 anchors.fill: parent
             }
 
             Modules.Clipboard {
+                screen: root.screen
                 id: clipboardView
 
                 anchors.fill: parent
             }
 
             Modules.EmojiPicker {
+                screen: root.screen
                 id: emojiPicker
 
                 anchors.fill: parent

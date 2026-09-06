@@ -13,3 +13,5 @@ singleton WallpaperService 1.0 WallpaperService.qml
 singleton ThemeService 1.0 ThemeService.qml
 singleton ClipboardService 1.0 ClipboardService.qml
 singleton EmojiService 1.0 EmojiService.qml
+
+singleton ClipboardWriter 1.0 ClipboardWriter.qml

@@ -14,13 +14,13 @@
       };
 
       terminal = {
-        name = "SFMono Nerd Font";
+        name = "JetBrainsMono Nerd Font";
         package = "nerd-fonts.jetbrains-mono";
       };
 
       emoji = {
         name = "Noto Color Emoji";
-        package = "sf-mono-nerd";
+        package = "noto-fonts-color-emoji";
       };
     };
 
@@ -94,6 +94,50 @@
   # THEMES
 
   themes = {
+
+    crimson = {
+      name = "Crimson";
+      description = "Charcoal, burgundy, and warm pink";
+      colors = {
+        background = "#151316";
+        backgroundDark = "#100F12";
+        surface = "#251D25";
+        surfaceHover = "#392936";
+        surfaceActive = "#513444";
+        border = "#57404C";
+        borderFocus = "#F05C76";
+        separator = "#3C2C36";
+        text = "#F4E9ED";
+        textSecondary = "#D4BCC6";
+        textMuted = "#B8A0AC";
+        accent = "#F05C76";
+        accentHover = "#FF8195";
+        accentActive = "#D94765";
+        accentMuted = "#613047";
+        accentForeground = "#181116";
+        success = "#A3C9A1";
+        warning = "#EBC286";
+        error = "#FF8D8D";
+        info = "#9EBCE0";
+        terminalBlack = "#3C323B";
+        terminalRed = "#F05C76";
+        terminalGreen = "#A3C9A1";
+        terminalYellow = "#EBC286";
+        terminalBlue = "#9EBCE0";
+        terminalMagenta = "#CE9CCB";
+        terminalCyan = "#9CCBC7";
+        terminalWhite = "#D4BCC6";
+        terminalBrightBlack = "#B8A0AC";
+        terminalBrightRed = "#FF8D9C";
+        terminalBrightGreen = "#BDDBB5";
+        terminalBrightYellow = "#F4D8AD";
+        terminalBrightBlue = "#BAD0EF";
+        terminalBrightMagenta = "#E1BCE0";
+        terminalBrightCyan = "#BCE0DA";
+        terminalBrightWhite = "#FFF5F8";
+      };
+    };
+
 
     # ==========================================================
     # CATPPUCCIN MOCHA

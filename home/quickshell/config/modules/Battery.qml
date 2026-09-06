@@ -9,11 +9,12 @@ import "../services" as Services
 
 Item {
     id: root
+    property var screen: null
 
     implicitWidth: 58
     implicitHeight: Core.Theme.moduleHeight
 
-    readonly property bool menuOpen: Core.PopupManager.isOpen("battery")
+    readonly property bool menuOpen: Core.PopupManager.isOpen("battery", root.screen)
 
     readonly property var svc: Services.BatteryService
 
@@ -168,7 +169,7 @@ Item {
 
             const p = root.mapToItem(null, 0, root.height);
 
-            Core.PopupManager.toggle("battery", p.x + root.width / 2, p.y + 6);
+            Core.PopupManager.toggle("battery", p.x + root.width / 2, p.y + 6, root.screen);
         }
 
         onWheel: function (event) {

@@ -5,6 +5,7 @@ import "../services" as Services
 
 Item {
     id: root
+    property string consumerId: ""
 
     // Set by Clock.qml when audio is playing and the bar is narrow.
     property bool active: false
@@ -75,11 +76,13 @@ Item {
     // Cava lifecycle
     // --------------------------------------------------
 
-    Binding {
-        target: Services.CavaService
-        property: "enabled"
-        value: root.shown
+    function updateConsumer() {
+        Services.CavaService.setConsumer(root.consumerId, root.shown && root.visible);
     }
+    onShownChanged: root.updateConsumer()
+    onVisibleChanged: root.updateConsumer()
+    Component.onCompleted: root.updateConsumer()
+    Component.onDestruction: Services.CavaService.setConsumer(root.consumerId, false)
 
     // --------------------------------------------------
     // Reveal

@@ -1,0 +1,31 @@
+{
+  "identity": {
+    "username": "nixos",
+    "hostname": "desktop",
+    "fullName": "",
+    "gitUser": "",
+    "email": "",
+    "timezone": "UTC",
+    "locale": "en_US.UTF-8"
+  },
+  "hardware": {
+    "formFactor": "desktop",
+    "cpu": "other",
+    "gpus": [],
+    "npu": "none"
+  },
+  "features": {
+    "development": false,
+    "creator": false,
+    "virtualisation": false,
+    "ai": false,
+    "wallpapers": false
+  },
+  "ai": {
+    "backend": "cpu"
+  },
+  "ssh": {
+    "enable": false,
+    "passwordAuthentication": false
+  }
+}

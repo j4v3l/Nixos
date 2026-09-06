@@ -6,7 +6,7 @@ local home = os.getenv("HOME")
 
 local activeThemePath = home .. "/.config/aurora/active-theme.lua"
 
-local fallbackThemePath = home .. "/.config/aurora/themes/catppuccin-mocha.lua"
+local fallbackThemePath = home .. "/.config/aurora/default-theme.lua"
 
 -- Load Active Theme
 

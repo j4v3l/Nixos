@@ -1,21 +1,6 @@
--- Monitor Configuration
-
--- Laptop Display
-
-hl.monitor({
-	output = "eDP-1",
---	mode = "1920x1080@60.00800",
---	position = "0x0",
---	scale = 1.25,
-    disabled = true
-})
-
--- External Acer VG240Y M3
-
-hl.monitor({
-	output = "HDMI-A-1",
-	mode = "1920x1080@180.00301",
-	--position = "1920x0",
-	position = "0x0",
-	scale = 1,
-})
+-- Use every connected display unless this host explicitly overrides it.
+local host = require("config.host")
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
+for _, monitor in ipairs(host.monitors) do
+    hl.monitor(monitor)
+end

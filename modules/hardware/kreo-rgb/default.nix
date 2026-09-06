@@ -120,7 +120,7 @@ in
     '';
 
     services.udev.extraRules = ''
-      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="320f", ATTRS{idProduct}=="5055", MODE="0660", GROUP="input"
+      SUBSYSTEM=="hidraw", ATTRS{idVendor}=="320f", ATTRS{idProduct}=="5055", MODE="0660", TAG+="uaccess"
     '';
   };
 }

@@ -267,6 +267,7 @@ end
 
 configure_capabilities()
 
+if vim.g.aurora_development then
 vim.lsp.enable({
 	"lua_ls",
 	"rust_analyzer",
@@ -286,6 +287,8 @@ vim.lsp.enable({
 	"taplo",
 	"qmlls",
 })
+
+end
 
 -- LSP Attach
 

@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../services" as Services
 
 QtObject {
     id: theme
@@ -29,7 +30,7 @@ QtObject {
 
     // Active Theme ID
 
-    readonly property string activeTheme: activeThemeFile.loaded ? activeThemeFile.text().trim() : "catppuccin-mocha"
+    readonly property string activeTheme: activeThemeFile.loaded && activeThemeFile.text().trim() !== "" ? activeThemeFile.text().trim() : Services.ThemeService.defaultId
 
     // Active Theme JSON
 

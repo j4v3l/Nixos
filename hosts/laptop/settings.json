@@ -1,0 +1,43 @@
+{
+  "identity": {
+    "username": "subha",
+    "hostname": "Subha",
+    "fullName": "Subha",
+    "gitUser": "subha279",
+    "email": "111702137+subha279@users.noreply.github.com",
+    "timezone": "Asia/Kolkata",
+    "locale": "en_US.UTF-8"
+  },
+  "hardware": {
+    "formFactor": "laptop",
+    "cpu": "intel",
+    "gpus": [
+      "intel",
+      "nvidia"
+    ],
+    "nvidia": {
+      "mode": "offload",
+      "open": true,
+      "branch": "stable",
+      "intelBusId": "PCI:0@0:2:0",
+      "amdgpuBusId": "",
+      "nvidiaBusId": "PCI:1@0:0:0"
+    },
+    "npu": "none",
+    "kreoRgb": true
+  },
+  "features": {
+    "development": true,
+    "creator": true,
+    "virtualisation": true,
+    "ai": true,
+    "wallpapers": false
+  },
+  "ai": {
+    "backend": "cuda"
+  },
+  "ssh": {
+    "enable": true,
+    "passwordAuthentication": true
+  }
+}

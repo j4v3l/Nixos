@@ -1,7 +1,7 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
-  vars = import ../../lib/variables.nix;
+  vars = config.aurora.identity;
 in
 {
   users.users.${vars.username} = {
@@ -12,7 +12,6 @@ in
     extraGroups = [
       "wheel"
       "networkmanager"
-      "input"
     ];
   };
 

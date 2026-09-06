@@ -35,21 +35,6 @@ Components.LauncherView {
         Services.AppsService.launch(entry);
     }
 
-    IpcHandler {
-        target: "launcher"
-
-        function toggle(): void {
-            launcher.toggle();
-        }
-
-        function open(): void {
-            launcher.show();
-        }
-
-        function close(): void {
-            launcher.dismiss();
-        }
-    }
 
     contentComponent: Component {
         ListView {

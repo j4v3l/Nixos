@@ -1,6 +1,7 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
+  config = lib.mkIf config.aurora.features.development {
   environment.systemPackages = with pkgs; [
     # Build / compilation
     gcc
@@ -45,4 +46,5 @@
     clang-tools
 
   ];
+  };
 }

@@ -33,9 +33,9 @@ Components.PopupSurface {
             Components.PopupHeader {
                 width: body.width
 
-                title: "Battery"
+                title: popup.svc.available ? "Battery" : "Power"
 
-                subtitle: popup.svc.stateLabel
+                subtitle: popup.svc.available ? popup.svc.stateLabel : popup.svc.profileLabel
 
                 actions: [
                     {
@@ -68,6 +68,7 @@ Components.PopupSurface {
 
             Rectangle {
                 id: gauge
+                visible: popup.svc.available
 
                 width: body.width
 

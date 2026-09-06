@@ -3,6 +3,7 @@
 let
   themeData = import ../../lib/themes.nix;
   themeNames = builtins.attrNames themeData.themes;
+  defaultTheme = themeData.global.activeTheme;
 
   themeToLua =
     themeId:
@@ -619,6 +620,8 @@ let
 
 in
 {
+  imports = [ ./wallpapers.nix ];
+  assertions = [ { assertion = builtins.hasAttr defaultTheme themeData.themes; message = "Unknown default Aurora theme."; } ];
   stylix.targets.gtk.enable = true;
   stylix.targets.qt.enable = true;
   stylix.targets.fontconfig.enable = true;
@@ -626,12 +629,28 @@ in
   xdg.configFile = {
     "aurora/themes.json".text = builtins.toJSON themeData;
     "aurora/themes.list".text = themeList + "\n";
+    "aurora/default-theme".text = defaultTheme + "\n";
+    "aurora/default-theme.lua".text = themeToLua defaultTheme;
   }
 
   // generatedLuaFiles
   // generatedJsonFiles
   // generatedKittyFiles
-  // generatedStarshipFiles;
+  // generatedStarshipFiles
+  // (lib.mapAttrs' (id: theme: lib.nameValuePair "aurora/themes/${id}.tmux.conf" {
+    text = ''
+      set -g status-style "bg=${theme.colors.background},fg=${theme.colors.text}"
+      set -g message-style "bg=${theme.colors.surface},fg=${theme.colors.text}"
+      set -g pane-border-style "fg=${theme.colors.border}"
+      set -g pane-active-border-style "fg=${theme.colors.accent}"
+      set -g window-status-current-style "bg=${theme.colors.accent},fg=${theme.colors.accentForeground}"
+    '';
+  }) themeData.themes)
+  // (lib.mapAttrs' (id: theme: lib.nameValuePair "aurora/themes/${id}.hyprlock.conf" {
+    text = lib.concatStringsSep "\n" (map (name:
+      "$${name} = rgb(${lib.removePrefix "#" theme.colors.${name}})"
+    ) [ "background" "surface" "accent" "text" "error" ]);
+  }) themeData.themes);
 
   home.activation.initializeAuroraTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     theme_dir="$HOME/.config/aurora"
@@ -644,15 +663,18 @@ in
     mkdir -p "$HOME/.cache/aurora"
 
     if [ ! -f "$theme_file" ]; then
-      printf '%s\n' "catppuccin-mocha" > "$theme_file"
+      printf '%s\n' "${defaultTheme}" > "$theme_file"
     fi
 
     selected="$(cat "$theme_file")"
 
     if [[ ! -f "$theme_dir/themes/$selected.lua" ]]; then
-      printf '%s\n' "catppuccin-mocha" > "$theme_file"
-      selected="catppuccin-mocha"
+      printf '%s\n' "${defaultTheme}" > "$theme_file"
+      selected="${defaultTheme}"
     fi
+
+    ln -sfn "$theme_dir/themes/$selected.tmux.conf" "$theme_dir/active-tmux.conf"
+    ln -sfn "$theme_dir/themes/$selected.hyprlock.conf" "$theme_dir/active-hyprlock.conf"
 
     ln -sfn \
       "$theme_dir/themes/$selected.lua" \
@@ -664,7 +686,7 @@ in
         "$active_kitty"
     else
       ln -sfn \
-        "$theme_dir/themes/catppuccin-mocha.kitty.conf" \
+        "$theme_dir/themes/${defaultTheme}.kitty.conf" \
         "$active_kitty"
     fi
 
@@ -674,7 +696,7 @@ in
         "$active_starship"
     else
       ln -sfn \
-        "$theme_dir/themes/catppuccin-mocha.starship.toml" \
+        "$theme_dir/themes/${defaultTheme}.starship.toml" \
         "$active_starship"
     fi
   '';
@@ -768,6 +790,11 @@ in
         fi
       fi
 
+      ln -sfn "$THEME_DIR/$theme_id.tmux.conf" "$CONFIG_DIR/active-tmux.conf"
+      ln -sfn "$THEME_DIR/$theme_id.hyprlock.conf" "$CONFIG_DIR/active-hyprlock.conf"
+      if command -v tmux >/dev/null 2>&1; then
+        tmux source-file "$CONFIG_DIR/active-tmux.conf" >/dev/null 2>&1 || true
+      fi
       ln -sfn "$theme_lua" "$ACTIVE_LUA"
       ln -sfn "$theme_kitty" "$ACTIVE_KITTY"
       ln -sfn "$theme_starship" "$ACTIVE_STARSHIP"
@@ -782,7 +809,7 @@ in
         shopt -s nullglob
 
         kitty_sockets=(
-          "$XDG_RUNTIME_DIR"/kitty-*
+          "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/kitty-*
         )
 
         for socket in "''${kitty_sockets[@]}"; do

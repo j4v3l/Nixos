@@ -1,8 +1,5 @@
-{ ... }:
+{ vars, ... }:
 
-let
-  vars = import ../../lib/variables.nix;
-in
 {
   programs.git = {
     enable = true;

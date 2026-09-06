@@ -13,7 +13,10 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(vars.fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(vars.browser))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(vars.menu))
-hl.bind(mainMod .. " + Z", hl.dsp.exec_cmd(vars.guieditor))
+if require("config.host").development then
+    hl.bind(mainMod .. " + Z", hl.dsp.exec_cmd(vars.guieditor))
+end
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(vars.note))
 
 -- Change Colorscheme

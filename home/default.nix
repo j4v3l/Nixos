@@ -1,8 +1,4 @@
-{ ... }:
-
-let
-  vars = import ../lib/variables.nix;
-in
+{ vars, ... }:
 
 {
   imports = [
@@ -17,6 +13,7 @@ in
     ./hyprland
     ./quickshell
     ./obsidian
+    ./lock
     ./theme
   ];
 

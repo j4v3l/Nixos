@@ -31,7 +31,6 @@
     "loglevel=3"
     "udev.log_level=3"
     "rd.udev.log_level=3"
-    "nowatchdog"
   ];
 
   boot.consoleLogLevel = 0;

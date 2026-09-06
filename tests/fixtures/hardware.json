@@ -1,0 +1,10 @@
+{
+  "intel-laptop": {"cpuVendor":"GenuineIntel","chassisType":10,"pci":[{"slot":"0000:00:02.0","vendor":"8086","device":"7d55","class":"0300"}]},
+  "amd-desktop": {"cpuVendor":"AuthenticAMD","chassisType":3,"pci":[{"slot":"0000:0a:00.0","vendor":"1002","device":"744c","class":"0300"}]},
+  "nvidia-desktop": {"cpuVendor":"AuthenticAMD","chassisType":3,"pci":[{"slot":"0000:01:00.0","vendor":"10de","device":"2684","class":"0300"},{"slot":"0000:10:00.0","vendor":"1002","device":"164e","class":"0300"}]},
+  "intel-nvidia": {"cpuVendor":"GenuineIntel","chassisType":10,"pci":[{"slot":"0000:00:02.0","vendor":"8086","device":"a7a0","class":"0300"},{"slot":"0001:0a:1f.2","vendor":"10de","device":"28a0","class":"0302"}]},
+  "amd-nvidia": {"cpuVendor":"AuthenticAMD","chassisType":9,"pci":[{"slot":"0000:05:00.0","vendor":"1002","device":"15bf","class":"0300"},{"slot":"0000:01:00.0","vendor":"10de","device":"28a0","class":"0302"}]},
+  "intel-npu": {"cpuVendor":"GenuineIntel","chassisType":10,"pci":[{"slot":"0000:00:0b.0","vendor":"8086","device":"7d1d","class":"1180"}]},
+  "amd-npu": {"cpuVendor":"AuthenticAMD","chassisType":3,"pci":[{"slot":"0000:c5:00.1","vendor":"1022","device":"17f0","class":"1180"}]},
+  "unknown": {"cpuVendor":"unknown","chassisType":3,"pci":[{"slot":"0000:00:01.0","vendor":"8086","device":"1234","class":"0200"}]}
+}

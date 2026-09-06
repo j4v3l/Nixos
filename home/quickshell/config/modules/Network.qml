@@ -9,11 +9,12 @@ import "../services" as Services
 
 Item {
     id: root
+    property var screen: null
 
     implicitWidth: 30
     implicitHeight: Core.Theme.moduleHeight
 
-    readonly property bool menuOpen: Core.PopupManager.isOpen("network")
+    readonly property bool menuOpen: Core.PopupManager.isOpen("network", root.screen)
 
     readonly property string link: Services.NetworkService.primaryLink
 
@@ -214,9 +215,9 @@ Item {
 
             const p = root.mapToItem(null, 0, root.height);
 
-            Core.PopupManager.toggle("network", p.x + root.width / 2, p.y + Core.Theme.barMarginTop);
+            Core.PopupManager.toggle("network", p.x + root.width / 2, p.y + Core.Theme.barMarginTop, root.screen);
 
-            if (Core.PopupManager.isOpen("network") && Services.NetworkService.networkModel.count === 0)
+            if (Core.PopupManager.isOpen("network", root.screen) && Services.NetworkService.networkModel.count === 0)
                 Services.NetworkService.rescan();
         }
 

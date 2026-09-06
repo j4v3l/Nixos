@@ -12,6 +12,7 @@ import "../services" as Services
 
 PanelWindow {
     id: root
+    screen: Core.PopupManager.focusedScreen
 
     anchors.top: true
     anchors.right: true

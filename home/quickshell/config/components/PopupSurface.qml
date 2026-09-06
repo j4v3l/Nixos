@@ -6,6 +6,7 @@ import "../core" as Core
 
 PanelWindow {
     id: root
+    screen: Core.PopupManager.screen
 
     property string popupId: ""
     property int cardWidth: Core.Theme.popupWidth

@@ -1,0 +1,1 @@
+Run `./setup.sh configure --host desktop --profile desktop` from the repository on the target NixOS machine. Setup generates host settings and its hardware configuration. This template deliberately contains no disk UUIDs.

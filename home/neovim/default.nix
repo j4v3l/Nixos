@@ -1,8 +1,9 @@
-{ pkgs, ... }:
+{ aurora, lib, pkgs, ... }:
 
 {
   programs.neovim = {
     enable = true;
+    extraLuaConfig = "vim.g.aurora_development = ${if aurora.features.development then "true" else "false"}";
 
     defaultEditor = true;
     viAlias = true;
@@ -58,7 +59,7 @@
     ];
 
     # Tools available directly to Neovim.
-    extraPackages = with pkgs; [
+    extraPackages = lib.optionals aurora.features.development (with pkgs; [
 
       # LSP
 
@@ -100,7 +101,7 @@
       # Git / VCS
 
       lazygit
-    ];
+    ]);
   };
 
   xdg.configFile."nvim".source = ./config;

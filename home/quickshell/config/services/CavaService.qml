@@ -21,7 +21,15 @@ Singleton {
 
     // Held false by default. NowPlaying binds this to its own visibility so
     // cava is not decoding audio while nothing is drawing it.
-    property bool enabled: false
+    property var consumers: ({})
+    readonly property bool enabled: Object.values(root.consumers).some(value => value)
+
+    function setConsumer(name, active) {
+        const next = Object.assign({}, root.consumers);
+        if (active) next[name] = true;
+        else delete next[name];
+        root.consumers = next;
+    }
 
     property var values: root.silence()
 

@@ -1,6 +1,7 @@
 { pkgs, ... }:
 
 {
+  programs.hyprlock.enable = true;
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;

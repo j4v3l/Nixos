@@ -9,13 +9,14 @@ import "../services" as Services
 
 Item {
     id: root
+    property var screen: null
 
     implicitWidth: 58
     implicitHeight: Core.Theme.moduleHeight
 
     readonly property var svc: Services.AudioService
 
-    readonly property bool menuOpen: Core.PopupManager.isOpen("audio")
+    readonly property bool menuOpen: Core.PopupManager.isOpen("audio", root.screen)
 
     Rectangle {
         anchors.fill: parent
@@ -149,7 +150,7 @@ Item {
             // used; the popup derives its own y from the theme.
             const p = root.mapToItem(null, 0, root.height);
 
-            Core.PopupManager.toggle("audio", p.x + root.width / 2, p.y + Core.Theme.barMarginTop);
+            Core.PopupManager.toggle("audio", p.x + root.width / 2, p.y + Core.Theme.barMarginTop, root.screen);
         }
 
         onWheel: function (event) {

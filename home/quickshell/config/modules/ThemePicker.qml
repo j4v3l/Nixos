@@ -44,21 +44,6 @@ Components.LauncherView {
         Services.ThemeService.apply(theme.id);
     }
 
-    IpcHandler {
-        target: "theme"
-
-        function toggle(): void {
-            launcher.toggle();
-        }
-
-        function open(): void {
-            launcher.show();
-        }
-
-        function close(): void {
-            launcher.dismiss();
-        }
-    }
 
     contentComponent: Component {
         ListView {

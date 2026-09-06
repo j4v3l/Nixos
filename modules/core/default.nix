@@ -1,7 +1,7 @@
-{ ... }:
+{ config, ... }:
 
 let
-  vars = import ../../lib/variables.nix;
+  vars = config.aurora.identity;
 in
 {
   time.timeZone = vars.timezone;
@@ -9,16 +9,6 @@ in
   i18n.defaultLocale = vars.locale;
 
   console.keyMap = "us";
-
-  # Use Cloudflare DNS instead of ISP DNS.
-  networking.networkmanager.dns = "none";
-
-  networking.nameservers = [
-    "1.1.1.1"
-    "1.0.0.1"
-  ];
-
-  networking.enableIPv6 = false;
 
   nix.settings = {
     experimental-features = [
@@ -38,7 +28,7 @@ in
     connect-timeout = 10;
     stalled-download-timeout = 90;
 
-    cores = 0;
+    cores = 1;
     max-jobs = "auto";
 
   };

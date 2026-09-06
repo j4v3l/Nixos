@@ -59,7 +59,7 @@ Singleton {
     // One-shot discovery
 
     property Process probe: Process {
-        command: ["brightnessctl", "-m"]
+        command: ["brightnessctl", "--class=backlight", "-m"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -109,7 +109,8 @@ Singleton {
     // Actions
 
     function change(amount) {
-        Quickshell.execDetached(["brightnessctl", "-e4", "-n2", "set", amount]);
+        if (!root.available) return;
+        Quickshell.execDetached(["brightnessctl", "--device=" + root.device, "-e4", "-n2", "set", amount]);
     }
 
     // Predict so the click feels instant, then let the file read (within ~100ms) settle the true value.
@@ -130,6 +131,7 @@ Singleton {
     }
 
     function step(up) {
+        if (!root.available) return;
         root.applyPredicted(root.level + (up ? root.stepSize : -root.stepSize));
 
         root.change(up ? root.stepSize + "%+" : root.stepSize + "%-");
@@ -167,7 +169,7 @@ Singleton {
     }
 
     property Timer poll: Timer {
-        interval: root.interacting ? 100 : 400
+        interval: root.interacting ? 100 : 2000
 
         running: root.device !== ""
         repeat: true

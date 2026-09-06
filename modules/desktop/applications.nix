@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   environment.systemPackages = with pkgs; [
@@ -63,17 +63,8 @@
 
     xdg-utils
 
-    # Content Creation
-
-    (pkgs.obs-studio.override {
-      cudaSupport = true;
-    })
-
-    ffmpeg
-    vlc
-    libreoffice-fresh
-    gimp
-    blender
-
-  ];
+  ] ++ lib.optionals config.aurora.features.creator (with pkgs; [
+    (obs-studio.override { cudaSupport = builtins.elem "nvidia" config.aurora.hardware.gpus; })
+    ffmpeg vlc libreoffice-fresh gimp blender
+  ]);
 }
