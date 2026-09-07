@@ -1,0 +1,52 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+        with:
+          extra_nix_config: |
+            cores = 1
+            max-jobs = 2
+      - name: Formatting, ShellCheck, syntax, and behavior tests
+        run: nix develop --no-write-lock-file -c bash scripts/check.sh --format
+      - name: Evaluate hardware profiles and rejected configurations
+        run: nix flake check --all-systems --no-build --no-write-lock-file
+      - name: Run assertion and installer fixture checks
+        run: nix build --no-link -L .#checks.x86_64-linux.assertions .#checks.x86_64-linux.installer
+
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [desktop-system, amd-system, installer-vm]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+        with:
+          enable_kvm: true
+          extra_nix_config: |
+            cores = 1
+            max-jobs = 2
+            system-features = nixos-test benchmark big-parallel kvm
+      - name: Build system or run disposable disk test
+        env:
+          CHECK: ${{ matrix.check }}
+        run: nix build --no-link --no-write-lock-file -L ".#checks.x86_64-linux.$CHECK"
