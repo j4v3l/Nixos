@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-
-# ============================================================
-# Single entry point: install, update, rebuild, validate,
-# maintenance, rollback and system recovery.
-# ============================================================
-
-
-# Terminal capabilities
-#
-# None of this was detected before: the script emitted escape codes
-# unconditionally, so `./setup.sh validate | tee log` wrote escape
-# sequences into the file and NO_COLOR was ignored.
+# Shared terminal output and prompts. Redirected output omits terminal controls.
 
 if [[ -t 1 ]]; then IS_TTY=1; else IS_TTY=0; fi
 
@@ -265,10 +254,7 @@ confirm() {
 
 # Validator results
 #
-# A distinct shape from the log lines above: a check result, not an
-# event. These used to be defined inside validator_run, which put a
-# hundred-odd call sites behind a function-local definition; the names
-# are kept exactly because those call sites are unchanged.
+# Installation and validation collect failures before printing a verdict.
 
 V_FAILED=0
 
@@ -276,6 +262,8 @@ v_ok() { printf '  %b%s%b %s\n' "$GREEN" "$ICON_OK" "$RESET" "$1"; }
 
 v_fail() {
     printf '  %b%s%b %s\n' "$RED" "$ICON_FAIL" "$RESET" "$1"
+    # Read by installation.sh after all verification steps finish.
+    # shellcheck disable=SC2034
     V_FAILED=1
 }
 
@@ -429,4 +417,3 @@ spinner() {
 
 need_cmd() { command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
 as_root() { sudo "$@"; }
-

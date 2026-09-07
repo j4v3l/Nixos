@@ -621,7 +621,12 @@ let
 in
 {
   imports = [ ./wallpapers.nix ];
-  assertions = [ { assertion = builtins.hasAttr defaultTheme themeData.themes; message = "Unknown default Aurora theme."; } ];
+  assertions = [
+    {
+      assertion = builtins.hasAttr defaultTheme themeData.themes;
+      message = "Unknown default Aurora theme.";
+    }
+  ];
   stylix.targets.gtk.enable = true;
   stylix.targets.qt.enable = true;
   stylix.targets.fontconfig.enable = true;
@@ -637,20 +642,32 @@ in
   // generatedJsonFiles
   // generatedKittyFiles
   // generatedStarshipFiles
-  // (lib.mapAttrs' (id: theme: lib.nameValuePair "aurora/themes/${id}.tmux.conf" {
-    text = ''
-      set -g status-style "bg=${theme.colors.background},fg=${theme.colors.text}"
-      set -g message-style "bg=${theme.colors.surface},fg=${theme.colors.text}"
-      set -g pane-border-style "fg=${theme.colors.border}"
-      set -g pane-active-border-style "fg=${theme.colors.accent}"
-      set -g window-status-current-style "bg=${theme.colors.accent},fg=${theme.colors.accentForeground}"
-    '';
-  }) themeData.themes)
-  // (lib.mapAttrs' (id: theme: lib.nameValuePair "aurora/themes/${id}.hyprlock.conf" {
-    text = lib.concatStringsSep "\n" (map (name:
-      "$${name} = rgb(${lib.removePrefix "#" theme.colors.${name}})"
-    ) [ "background" "surface" "accent" "text" "error" ]);
-  }) themeData.themes);
+  // (lib.mapAttrs' (
+    id: theme:
+    lib.nameValuePair "aurora/themes/${id}.tmux.conf" {
+      text = ''
+        set -g status-style "bg=${theme.colors.background},fg=${theme.colors.text}"
+        set -g message-style "bg=${theme.colors.surface},fg=${theme.colors.text}"
+        set -g pane-border-style "fg=${theme.colors.border}"
+        set -g pane-active-border-style "fg=${theme.colors.accent}"
+        set -g window-status-current-style "bg=${theme.colors.accent},fg=${theme.colors.accentForeground}"
+      '';
+    }
+  ) themeData.themes)
+  // (lib.mapAttrs' (
+    id: theme:
+    lib.nameValuePair "aurora/themes/${id}.hyprlock.conf" {
+      text = lib.concatStringsSep "\n" (
+        map (name: "$${name} = rgb(${lib.removePrefix "#" theme.colors.${name}})") [
+          "background"
+          "surface"
+          "accent"
+          "text"
+          "error"
+        ]
+      );
+    }
+  ) themeData.themes);
 
   home.activation.initializeAuroraTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     theme_dir="$HOME/.config/aurora"

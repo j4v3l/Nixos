@@ -138,6 +138,7 @@ Singleton {
     }
 
     function setPercent(percent) {
+        if (!root.available) return;
         root.applyPredicted(percent);
         root.change(Math.round(percent) + "%");
     }

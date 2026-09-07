@@ -15,11 +15,7 @@ Item {
     readonly property bool playing: root.svc.playing
 
     readonly property bool shown: root.active && root.svc.available
-
-    // --------------------------------------------------
     // Equalizer
-    // --------------------------------------------------
-
     readonly property int visualBarCount: 7
 
     readonly property int barWidth: 2
@@ -36,11 +32,7 @@ Item {
     width: root.visualWidth
 
     height: root.eqHeight
-
-    // --------------------------------------------------
     // Cava sampling
-    // --------------------------------------------------
-
     // Pick evenly distributed values from the existing
     // 11-band Cava spectrum.
     //
@@ -58,11 +50,7 @@ Item {
     function barLevel(i) {
         return root.playing ? Services.CavaService.level(root.cavaIndex(i)) : 0.0;
     }
-
-    // --------------------------------------------------
     // Theme
-    // --------------------------------------------------
-
     function barColor(i) {
         const t = root.visualBarCount > 1 ? i / (root.visualBarCount - 1) : 0;
 
@@ -71,23 +59,21 @@ Item {
 
         return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1.0);
     }
-
-    // --------------------------------------------------
     // Cava lifecycle
-    // --------------------------------------------------
-
+    property string registeredConsumer: ""
     function updateConsumer() {
-        Services.CavaService.setConsumer(root.consumerId, root.shown && root.visible);
+        if (root.registeredConsumer !== root.consumerId)
+            Services.CavaService.setConsumer(root.registeredConsumer, false);
+        root.registeredConsumer = root.consumerId;
+        if (root.consumerId !== "")
+            Services.CavaService.setConsumer(root.consumerId, root.shown && root.visible);
     }
+    onConsumerIdChanged: root.updateConsumer()
     onShownChanged: root.updateConsumer()
     onVisibleChanged: root.updateConsumer()
     Component.onCompleted: root.updateConsumer()
-    Component.onDestruction: Services.CavaService.setConsumer(root.consumerId, false)
-
-    // --------------------------------------------------
+    Component.onDestruction: Services.CavaService.setConsumer(root.registeredConsumer, false)
     // Reveal
-    // --------------------------------------------------
-
     opacity: root.shown ? 1.0 : 0.0
 
     visible: root.opacity > 0.01
@@ -109,11 +95,7 @@ Item {
             }
         }
     }
-
-    // --------------------------------------------------
     // Bars
-    // --------------------------------------------------
-
     Repeater {
         model: root.visualBarCount
 

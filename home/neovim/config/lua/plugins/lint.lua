@@ -5,6 +5,9 @@ local M = {}
 -- Setup
 
 function M.setup()
+	if not require("aurora.host").development then
+		return true
+	end
 	local ok, lint = pcall(require, "lint")
 
 	if not ok then

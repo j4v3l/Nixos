@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 M_NIXOS_DIR="$ROOT"
 M_FLAKE_TARGET="$ROOT#$HOST"
 M_KEEP_GENERATIONS=5
@@ -65,7 +66,7 @@ m_check_git() {
 
     section "${M_ICON_GIT} Git status"
 
-    cd "$M_NIXOS_DIR"
+    cd "$M_NIXOS_DIR" || return 1
 
     if [[ -n "$(git status --porcelain)" ]]; then
 
@@ -444,4 +445,3 @@ m_maintenance_dashboard() {
     echo
     pause
 }
-

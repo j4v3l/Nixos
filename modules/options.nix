@@ -1,8 +1,18 @@
 { lib, ... }:
 let
   inherit (lib) mkOption mkEnableOption types;
-  string = default: mkOption { type = types.str; inherit default; };
-  choice = values: default: mkOption { type = types.enum values; inherit default; };
+  string =
+    default:
+    mkOption {
+      type = types.str;
+      inherit default;
+    };
+  choice =
+    values: default:
+    mkOption {
+      type = types.enum values;
+      inherit default;
+    };
 in
 {
   options.aurora = {
@@ -19,14 +29,26 @@ in
       formFactor = choice [ "laptop" "desktop" ] "desktop";
       cpu = choice [ "intel" "amd" "other" ] "other";
       gpus = mkOption {
-        type = types.listOf (types.enum [ "intel" "amd" "nvidia" ]);
+        type = types.listOf (
+          types.enum [
+            "intel"
+            "amd"
+            "nvidia"
+          ]
+        );
         default = [ ];
       };
       intelMediaDriver = choice [ "modern" "legacy" ] "modern";
-      graphics32Bit = mkOption { type = types.bool; default = true; };
+      graphics32Bit = mkOption {
+        type = types.bool;
+        default = true;
+      };
       nvidia = {
         mode = choice [ "dedicated" "offload" ] "dedicated";
-        open = mkOption { type = types.bool; default = true; };
+        open = mkOption {
+          type = types.bool;
+          default = true;
+        };
         branch = string "stable";
         intelBusId = string "";
         amdgpuBusId = string "";
@@ -37,12 +59,14 @@ in
         runtime = mkEnableOption "the experimental Ryzen AI 1.8 inference runtime";
         # Vendor archives can require a download agreement. Their hashes are host inputs.
         archives = mkOption {
-          type = types.attrsOf (types.submodule {
-            options = {
-              name = mkOption { type = types.str; };
-              hash = mkOption { type = types.str; };
-            };
-          });
+          type = types.attrsOf (
+            types.submodule {
+              options = {
+                name = mkOption { type = types.str; };
+                hash = mkOption { type = types.str; };
+              };
+            }
+          );
           default = { };
           description = "Pinned vendor artifacts; see docs/hardware.md.";
         };
@@ -60,18 +84,29 @@ in
     ai.backend = choice [ "cpu" "cuda" "rocm" "vulkan" ] "cpu";
     ssh = {
       enable = mkEnableOption "the SSH server";
-      passwordAuthentication = mkOption { type = types.bool; default = false; };
+      passwordAuthentication = mkOption {
+        type = types.bool;
+        default = false;
+      };
     };
     desktop.monitors = mkOption {
-      type = types.listOf (types.submodule {
-        options = {
-          output = mkOption { type = types.str; };
-          mode = string "preferred";
-          position = string "auto";
-          scale = mkOption { type = types.either types.int types.float; default = 1; };
-          disabled = mkOption { type = types.bool; default = false; };
-        };
-      });
+      type = types.listOf (
+        types.submodule {
+          options = {
+            output = mkOption { type = types.str; };
+            mode = string "preferred";
+            position = string "auto";
+            scale = mkOption {
+              type = types.either types.int types.float;
+              default = 1;
+            };
+            disabled = mkOption {
+              type = types.bool;
+              default = false;
+            };
+          };
+        }
+      );
       default = [ ];
     };
   };

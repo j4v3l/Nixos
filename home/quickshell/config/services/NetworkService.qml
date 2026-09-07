@@ -147,11 +147,7 @@ Singleton {
     onActiveSsidChanged: root.queueLinkNotification()
     onEthConnectionChanged: root.queueLinkNotification()
     onWifiEnabledChanged: root.queueLinkNotification()
-
-    // ------------------------------------------------------------
     // Live ListModel (stable rows => real add/remove animations)
-    // ------------------------------------------------------------
-
     property ListModel networkModel: ListModel {}
 
     // Parsing helpers

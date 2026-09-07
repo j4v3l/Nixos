@@ -1,8 +1,19 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   backend = config.aurora.ai.backend;
-  packages = { cpu = pkgs.ollama; cuda = pkgs.ollama-cuda; rocm = pkgs.ollama-rocm; vulkan = pkgs.ollama-vulkan; };
-in {
+  packages = {
+    cpu = pkgs.ollama.override { acceleration = false; };
+    cuda = pkgs.ollama-cuda;
+    rocm = pkgs.ollama-rocm;
+    vulkan = pkgs.ollama-vulkan;
+  };
+in
+{
   config = lib.mkIf config.aurora.features.ai {
     services.ollama = {
       enable = true;

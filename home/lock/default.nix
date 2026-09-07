@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   programs.hyprlock.enable = true;
   xdg.configFile."hypr/hyprlock.conf".text = ''
@@ -28,6 +33,7 @@
   '';
   services.hypridle = {
     enable = true;
+    systemdTarget = "hyprland-session.target";
     settings = {
       general = {
         lock_cmd = "pidof hyprlock || ${lib.getExe pkgs.hyprlock}";
@@ -35,10 +41,12 @@
         after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
         inhibit_sleep = 3;
       };
-      listener = [ {
-        timeout = 600;
-        on-timeout = "${pkgs.systemd}/bin/loginctl lock-session";
-      } ];
+      listener = [
+        {
+          timeout = 600;
+          on-timeout = "${pkgs.systemd}/bin/loginctl lock-session";
+        }
+      ];
     };
   };
 }

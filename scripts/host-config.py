@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Detect hardware and serialize host settings. Detection never writes files."""
 import argparse
-import copy
 import json
 import os
 from pathlib import Path
 import re
-import subprocess
 import sys
 import tempfile
 
@@ -77,6 +75,27 @@ def validate(settings):
         if '\n' in identity[key] or '\x00' in identity[key]:
             raise ValueError(f'Invalid {key}')
 
+    hw = settings['hardware']
+    gpus = hw.get('gpus', [])
+    if hw.get('npu') == 'intel' and hw.get('cpu') != 'intel':
+        raise ValueError('Intel NPU requires an Intel CPU')
+    if hw.get('npu') == 'amd' and hw.get('cpu') != 'amd':
+        raise ValueError('AMD NPU requires an AMD CPU')
+    if settings.get('features', {}).get('ai'):
+        backend = settings.get('ai', {}).get('backend', 'cpu')
+        if (backend == 'cuda' and 'nvidia' not in gpus) or (backend == 'rocm' and 'amd' not in gpus):
+            raise ValueError(f'Ollama {backend} backend does not match detected graphics; select a compatible backend')
+    cfg = hw.get('nvidia', {})
+    if 'nvidia' in gpus:
+        if cfg.get('branch', 'stable').startswith('legacy_') and cfg.get('open', True):
+            raise ValueError('Legacy NVIDIA branches require closed modules')
+        if cfg.get('mode') == 'offload':
+            valid_bus = lambda value: re.fullmatch(r'PCI:[0-9]+(?:@[0-9]+)?:[0-9]+:[0-9]+', value or '')
+            intel = valid_bus(cfg.get('intelBusId')) and 'intel' in gpus
+            amd = valid_bus(cfg.get('amdgpuBusId')) and 'amd' in gpus
+            if not valid_bus(cfg.get('nvidiaBusId')) or bool(intel) == bool(amd):
+                raise ValueError('PRIME offload requires NVIDIA and exactly one matching iGPU bus ID')
+
 
 def prompt(label, default):
     print(f"  {label} [{default}]: ", end='', file=sys.stderr, flush=True)
@@ -102,6 +121,8 @@ def prepare(root, name, profile=None, data=None, interactive=False, redetect=Fal
             settings['identity'][key] = prompt(key, value)
         for key in ('development', 'creator', 'virtualisation', 'ai', 'wallpapers'):
             settings['features'][key] = prompt(f'Enable {key}? y/n', 'y' if settings['features'].get(key) else 'n').lower() == 'y'
+        ssh = settings.setdefault('ssh', {})
+        ssh['enable'] = prompt('Enable SSH server? y/n', 'y' if ssh.get('enable') else 'n').lower() == 'y'
         if settings['features']['ai']:
             backend = prompt('Ollama backend: cpu/cuda/rocm/vulkan', settings.get('ai', {}).get('backend', 'cpu'))
             if backend not in ('cpu', 'cuda', 'rocm', 'vulkan'):

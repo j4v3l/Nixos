@@ -1,13 +1,42 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
-    ./options.nix ./core ./boot ./networking ./users ./packages ./fonts
-    ./audio ./bluetooth ./polkit ./graphics ./xdg ./notifications ./hyprland
-    ./desktop ./session ./monitoring ./nvidia ./power ./stylix
-    ./development ./ai ./creator ./virtualisation ./hardware/kreo-rgb ./npu.nix
+    ./options.nix
+    ./core
+    ./boot
+    ./networking
+    ./users
+    ./packages
+    ./fonts
+    ./audio
+    ./bluetooth
+    ./polkit
+    ./graphics
+    ./xdg
+    ./notifications
+    ./hyprland
+    ./desktop
+    ./session
+    ./monitoring
+    ./nvidia
+    ./power
+    ./stylix
+    ./development
+    ./ai
+    ./creator
+    ./virtualisation
+    ./hardware/kreo-rgb
+    ./npu.nix
   ];
   networking.hostName = config.aurora.identity.hostname;
-  boot.kernelPackages = lib.mkIf (config.aurora.hardware.kernel == "latest") pkgs.linuxPackages_latest;
+  boot.kernelPackages = lib.mkIf (
+    config.aurora.hardware.kernel == "latest"
+  ) pkgs.linuxPackages_latest;
   hardware.kreoRgb = {
     enable = config.aurora.hardware.kreoRgb;
     followTheme = true;

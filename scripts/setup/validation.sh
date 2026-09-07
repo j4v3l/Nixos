@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 validator_run() {
     "$ROOT/scripts/check.sh"
     flake_check

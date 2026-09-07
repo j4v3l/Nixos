@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 CI_TARGET="/mnt"
 CI_ESP_LABEL="EFI"
 CI_ROOT_LABEL="nixos"
@@ -87,6 +88,14 @@ ci_check_network() {
 
 ci_preflight() {
     section "Preflight"
+
+    if [[ "$(uname -m)" != "x86_64" || ! -d /sys/firmware/efi ]]; then
+        if [[ "$CI_DRY_RUN" -eq 0 ]]; then
+            error "Clean installation requires an x86-64 machine booted in UEFI mode."
+            return 1
+        fi
+        warning "A real installation requires x86-64 and a UEFI boot."
+    fi
 
     local -a missing=()
     local c
@@ -432,21 +441,21 @@ ci_wait_for_part() {
 ci_partition() {
     section "Partitioning $CI_DISK"
 
-    ci_run wipefs -a "$CI_DISK"
+    ci_run wipefs -a "$CI_DISK" || return 1
 
     # Both branches produce the same result: a 1 MiB-aligned 1 GiB EF00 ESP,
     # then the remainder as Linux filesystem.
     if [[ "$CI_PARTITIONER" == "parted" ]]; then
-        ci_run parted -s "$CI_DISK" mklabel gpt
-        ci_run parted -s "$CI_DISK" mkpart "$CI_ESP_LABEL" fat32 1MiB 1025MiB
-        ci_run parted -s "$CI_DISK" set 1 esp on
-        ci_run parted -s "$CI_DISK" mkpart "$CI_ROOT_LABEL" ext4 1025MiB 100%
+        ci_run parted -s "$CI_DISK" mklabel gpt || return 1
+        ci_run parted -s "$CI_DISK" mkpart "$CI_ESP_LABEL" fat32 1MiB 1025MiB || return 1
+        ci_run parted -s "$CI_DISK" set 1 esp on || return 1
+        ci_run parted -s "$CI_DISK" mkpart "$CI_ROOT_LABEL" ext4 1025MiB 100% || return 1
     else
-        ci_run sgdisk --zap-all "$CI_DISK"
+        ci_run sgdisk --zap-all "$CI_DISK" || return 1
         ci_run sgdisk \
             --new="1:0:$CI_ESP_SGDISK_SIZE" --typecode=1:ef00 --change-name=1:"$CI_ESP_LABEL" \
             --new=2:0:0 --typecode=2:8300 --change-name=2:"$CI_ROOT_LABEL" \
-            "$CI_DISK"
+            "$CI_DISK" || return 1
     fi
 
     # partprobe ships with parted and udevadm with systemd; neither is worth
@@ -511,10 +520,10 @@ ci_format() {
 ci_mount() {
     section "Mounting"
 
-    ci_run mkdir -p "$CI_TARGET"
-    ci_run mount "$CI_ROOT_PART" "$CI_TARGET"
-    ci_run mkdir -p "$CI_TARGET/boot"
-    ci_run mount "$CI_ESP" "$CI_TARGET/boot"
+    ci_run mkdir -p "$CI_TARGET" || return 1
+    ci_run mount "$CI_ROOT_PART" "$CI_TARGET" || return 1
+    ci_run mkdir -p "$CI_TARGET/boot" || return 1
+    ci_run mount "$CI_ESP" "$CI_TARGET/boot" || return 1
 
     if [[ "$CI_DRY_RUN" -eq 0 ]]; then
         mountpoint -q "$CI_TARGET" || {
@@ -653,7 +662,7 @@ ci_place_repo() {
 
 ci_collect_identity() {
     section "Host settings"
-    host_collect_settings --redetect
+    host_collect_settings --redetect || return 1
     CI_USER="$(printf '%s' "$HOST_SETTINGS" | python3 -c 'import json,sys; print(json.load(sys.stdin)["identity"]["username"])')"
     CI_DEST="$CI_TARGET/home/$CI_USER/NixOS"
     confirm "Use these settings for $HOST?" || return 1
@@ -1222,7 +1231,7 @@ clean_install() {
 
     if [[ "$CI_DRY_RUN" -eq 0 ]]; then
         ci_confirm_destroy || return 1
-        ci_release_target
+        ci_release_target || return 1
         ci_partition || return 1
         ci_format || return 1
         ci_mount || return 1
@@ -1281,4 +1290,3 @@ clean_install() {
     info "Reboot into GRUB, then the newest generation of ${CI_DEST#"$CI_TARGET"}."
     confirm "Reboot now?" && reboot
 }
-

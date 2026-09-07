@@ -13,6 +13,40 @@ def bash(code, extra=None):
 
 
 class Installer(unittest.TestCase):
+    def test_partition_failure_stops_even_in_a_conditional(self):
+        result = bash('''source scripts/setup/installation.sh
+CI_DISK=/dev/disposable; CI_PARTITIONER=sgdisk
+section() { :; }
+ci_run() { echo "CALLED:$1"; return 1; }
+if ci_partition; then echo UNEXPECTED_SUCCESS; fi
+''')
+        self.assertEqual(result.stdout.strip(), 'CALLED:wipefs')
+
+    def test_real_dry_run_helpers_do_not_write(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = bash('''set -Eeuo pipefail
+ROOT="$PWD"; HOST=desktop
+source scripts/setup/installation.sh
+CI_DRY_RUN=1; CI_TARGET="$TEST_TARGET"; CI_DEST="$TEST_TARGET/repo"; CI_USER=nixos
+section() { :; }; info() { :; }; warning() { :; }; run_cmd() { :; }
+for command in mkdir cp mv rm chmod chown nix nixos-install nixos-enter nixos-generate-config fallocate swapon mkswap; do
+    eval "$command() { echo UNSAFE:$command >&2; return 91; }"
+done
+ci_setup_swap
+ci_apply_identity
+ci_generate_hardware
+ci_prepare_target_store
+ci_validate_flake
+ci_build_system
+ci_install
+ci_fix_ownership
+ci_set_password
+ci_cleanup_installer_artifacts
+''', {'TEST_TARGET': directory})
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn('UNSAFE', result.stderr)
+            self.assertEqual(list(Path(directory).iterdir()), [])
+
     def test_hardware_generation_failure_preserves_previous_file(self):
         with tempfile.TemporaryDirectory() as directory:
             file = Path(directory)/'hardware-configuration.nix'

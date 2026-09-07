@@ -1,9 +1,13 @@
-{ aurora, lib, pkgs, ... }:
+{
+  aurora,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   programs.neovim = {
     enable = true;
-    extraLuaConfig = "vim.g.aurora_development = ${if aurora.features.development then "true" else "false"}";
 
     defaultEditor = true;
     viAlias = true;
@@ -24,7 +28,24 @@
 
       # Syntax / Treesitter
 
-      nvim-treesitter.withAllGrammars
+      (
+        if aurora.features.development then
+          nvim-treesitter.withAllGrammars
+        else
+          nvim-treesitter.withPlugins (p: [
+            p.bash
+            p.json
+            p.lua
+            p.nix
+            p.markdown
+            p.markdown_inline
+            p.query
+            p.vim
+            p.vimdoc
+            p.yaml
+            p.toml
+          ])
+      )
       nvim-colorizer-lua
 
       # Search / Navigation
@@ -59,50 +80,58 @@
     ];
 
     # Tools available directly to Neovim.
-    extraPackages = lib.optionals aurora.features.development (with pkgs; [
+    extraPackages = lib.optionals aurora.features.development (
+      with pkgs;
+      [
 
-      # LSP
+        # LSP
 
-      # QML language server, formatter, and linter.
-      qt6.qtdeclarative
+        # QML language server, formatter, and linter.
+        qt6.qtdeclarative
 
-      lua-language-server
-      rust-analyzer
-      typescript-language-server
-      pyright
-      clang-tools
-      nixd
-      bash-language-server
-      vscode-langservers-extracted
-      yaml-language-server
-      marksman
-      tailwindcss-language-server
-      dockerfile-language-server
-      taplo
+        lua-language-server
+        rust-analyzer
+        typescript-language-server
+        pyright
+        clang-tools
+        nixd
+        bash-language-server
+        vscode-langservers-extracted
+        yaml-language-server
+        marksman
+        tailwindcss-language-server
+        dockerfile-language-server
+        taplo
 
-      # Formatters
+        # Formatters
 
-      stylua
-      prettier
-      ruff
-      nixfmt
-      shfmt
-      eslint_d
-      shellcheck
-      rustfmt
+        stylua
+        prettier
+        ruff
+        nixfmt
+        shfmt
+        eslint_d
+        shellcheck
+        rustfmt
 
-      # C / C++ development
+        # C / C++ development
 
-      gcc
-      gdb
-      cmake
-      pkg-config
+        gcc
+        gdb
+        cmake
+        pkg-config
 
-      # Git / VCS
+        # Git / VCS
 
-      lazygit
-    ]);
+        lazygit
+      ]
+    );
   };
 
-  xdg.configFile."nvim".source = ./config;
+  xdg.configFile."nvim" = {
+    source = ./config;
+    recursive = true;
+  };
+  xdg.configFile."nvim/lua/aurora/host.lua".text =
+    "return " + lib.generators.toLua { } { development = aurora.features.development; };
 }

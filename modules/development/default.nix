@@ -1,50 +1,55 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   config = lib.mkIf config.aurora.features.development {
-  environment.systemPackages = with pkgs; [
-    # Build / compilation
-    gcc
-    clang
-    gnumake
-    cmake
-    pkg-config
+    environment.systemPackages = with pkgs; [
+      # Build / compilation
+      gcc
+      clang
+      gnumake
+      cmake
+      pkg-config
 
-    # Development utilities
-    git-lfs
-    shellcheck
-    zed-editor
-    opencode
+      # Development utilities
+      git-lfs
+      shellcheck
+      zed-editor
+      opencode
 
-    # Rust
-    rustc
-    cargo
-    rustfmt
-    clippy
+      # Rust
+      rustc
+      cargo
+      rustfmt
+      clippy
 
-    # Node / JavaScript
-    nodejs
-    pnpm
+      # Node / JavaScript
+      nodejs
+      pnpm
 
-    # Python
-    python3
+      # Python
+      python3
 
-    # Containers
-    podman
-    podman-compose
+      # Containers
+      podman
+      podman-compose
 
-    # Debugging
-    gdb
-    strace
-    lldb
+      # Debugging
+      gdb
+      strace
+      lldb
 
-    # Documentation / inspection
-    man-pages
-    man-pages-posix
+      # Documentation / inspection
+      man-pages
+      man-pages-posix
 
-    # C/C++ tooling
-    clang-tools
+      # C/C++ tooling
+      clang-tools
 
-  ];
+    ];
   };
 }

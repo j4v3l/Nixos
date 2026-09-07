@@ -26,23 +26,43 @@
 
   };
 
-  outputs = inputs@{ nixpkgs, ... }:
+  outputs =
+    inputs@{ nixpkgs, ... }:
     let
       mkHost = import ./lib/mk-host.nix { inherit inputs; };
-      hosts = nixpkgs.lib.filterAttrs (name: kind:
-        kind == "directory" && builtins.pathExists (./hosts + "/${name}/settings.json")
+      hosts = nixpkgs.lib.filterAttrs (
+        name: kind: kind == "directory" && builtins.pathExists (./hosts + "/${name}/settings.json")
       ) (builtins.readDir ./hosts);
-    in {
-      nixosConfigurations = builtins.mapAttrs (name: _: mkHost {
-        inherit name;
-        settings = builtins.fromJSON (builtins.readFile (./hosts + "/${name}/settings.json"));
-        hostModule = ./hosts + "/${name}";
-      }) hosts;
+    in
+    {
+      nixosConfigurations = builtins.mapAttrs (
+        name: _:
+        mkHost {
+          inherit name;
+          settings = builtins.fromJSON (builtins.readFile (./hosts + "/${name}/settings.json"));
+          hostModule = ./hosts + "/${name}";
+        }
+      ) hosts;
       templates.desktop = {
         path = ./templates/desktop;
         description = "Desktop host settings; run setup.sh configure to detect hardware.";
       };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      devShells.x86_64-linux.default =
+        let
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        in
+        pkgs.mkShell {
+          packages = with pkgs; [
+            bash
+            shellcheck
+            python3
+            nodejs
+            lua
+            nixfmt
+            qt6.qtdeclarative
+          ];
+        };
       checks.x86_64-linux = import ./tests/checks.nix { inherit inputs mkHost; };
     };
 }

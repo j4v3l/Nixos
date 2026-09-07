@@ -17,44 +17,66 @@ Item {
         listProcess.running = true;
     }
 
-    function shellQuote(value) {
-        return "'" + String(value).replace(/'/g, "'\\''") + "'";
-    }
-
     function paste(item) {
         if (!item)
             return;
-
-        const command = "printf '%s\\n' " + shellQuote(item.raw) + " | cliphist decode | wl-copy";
-
-        Quickshell.execDetached(["sh", "-c", command]);
-
-        Quickshell.execDetached(["sh", "-c", "sleep 0.05; wtype -M ctrl v -m ctrl"]);
-
-        refresh();
+        enqueue("paste", item.raw);
     }
 
     function remove(item) {
         if (!item)
             return;
 
-        const command = "printf '%s\\n' " + shellQuote(item.raw) + " | cliphist delete";
-
-        Quickshell.execDetached(["sh", "-c", command]);
-
-        refresh();
+        enqueue("delete", item.raw);
     }
 
     function clear() {
-        Quickshell.execDetached(["sh", "-c", "cliphist wipe"]);
+        enqueue("wipe", "");
+    }
 
-        refresh();
+    property var operations: []
+    property var operation: null
+
+    function enqueue(action, raw) {
+        root.operations.push({ action: action, raw: String(raw) });
+        root.nextOperation();
+    }
+
+    function nextOperation() {
+        if (actionProcess.running || root.operations.length === 0) return;
+        root.operation = root.operations.shift();
+        // Keep decoded image bytes in the pipe. History text is written to stdin.
+        actionProcess.command = root.operation.action === "paste"
+            ? ["bash", "-o", "pipefail", "-c", "cliphist decode | wl-copy"]
+            : ["cliphist", root.operation.action];
+        actionProcess.stdinEnabled = true;
+        actionProcess.running = true;
+    }
+
+    Process {
+        id: actionProcess
+        onStarted: {
+            actionProcess.write(root.operation.raw + "\n");
+            actionProcess.stdinEnabled = false;
+        }
+        onExited: function(code) {
+            if (code === 0 && root.operation.action === "paste") pasteDelay.restart();
+            if (code !== 0) console.warn("Clipboard history operation failed");
+            root.refresh();
+            Qt.callLater(root.nextOperation);
+        }
+    }
+
+    Timer {
+        id: pasteDelay
+        interval: 50
+        onTriggered: Quickshell.execDetached(["wtype", "-M", "ctrl", "v", "-m", "ctrl"])
     }
 
     Process {
         id: listProcess
 
-        command: ["sh", "-c", "cliphist list"]
+        command: ["cliphist", "list"]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -89,7 +111,7 @@ Item {
 
         // No --type filter on purpose: cliphist stores images too, and pinning
         // this to text meant image copies never reached the history.
-        command: ["sh", "-c", "wl-paste --watch cliphist store"]
+        command: ["wl-paste", "--watch", "cliphist", "store"]
 
         running: true
 

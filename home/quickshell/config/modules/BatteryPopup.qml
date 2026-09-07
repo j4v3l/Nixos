@@ -324,7 +324,7 @@ Components.PopupSurface {
 
                         title: profileRow.modelData === 0 ? "Power saver" : profileRow.modelData === 2 ? "Performance" : "Balanced"
 
-                        subtitle: profileRow.modelData === 0 ? "Longest battery life" : profileRow.modelData === 2 ? "Maximum speed, more heat" : "Default — good all round"
+                        subtitle: profileRow.modelData === 0 ? "Reduce power use" : profileRow.modelData === 2 ? "Maximum speed, more heat" : "Balance speed and power use"
 
                         active: popup.svc.profile === profileRow.modelData
                         glassActive: true
@@ -583,9 +583,9 @@ Components.PopupSurface {
             Text {
                 width: body.width
 
-                visible: !popup.svc.available
+                visible: !popup.svc.available && !popup.svc.profilesAvailable
 
-                text: "No battery detected on this machine."
+                text: "No battery or power profile service detected."
 
                 horizontalAlignment: Text.AlignHCenter
 
@@ -603,10 +603,6 @@ Components.PopupSurface {
     // Clipboard helper, kept on the popup so delegates can reach it.
 
     function copyText(text) {
-        try {
-            Quickshell.clipboardText = text;
-        } catch (e) {
-            // Silently ignore — clipboard is a nice-to-have.
-        }
+        Services.ClipboardWriter.copy(text);
     }
 }

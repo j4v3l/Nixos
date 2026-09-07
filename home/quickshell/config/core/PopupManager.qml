@@ -19,7 +19,9 @@ QtObject {
     }
     readonly property var screen: root.screens.find(s => s.name === root.screenName) || root.focusedScreen
 
-    onScreensChanged: {
+    onScreensChanged: root.reconcileScreens()
+
+    function reconcileScreens() {
         if (root.current !== "" && !root.screens.some(s => s.name === root.screenName))
             root.close();
     }

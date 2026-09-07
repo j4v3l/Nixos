@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   vars = config.aurora.identity;
@@ -6,34 +11,34 @@ in
 
 {
   config = lib.mkIf config.aurora.features.virtualisation {
-  # Virtualisation
+    # Virtualisation
 
-  virtualisation.libvirtd = {
-    enable = true;
+    virtualisation.libvirtd = {
+      enable = true;
 
-    # Do not bring guests up while the machine is still booting.
-    onBoot = "ignore";
+      # Do not bring guests up while the machine is still booting.
+      onBoot = "ignore";
 
-    qemu = {
-      package = pkgs.qemu_kvm;
-      runAsRoot = true;
-      swtpm.enable = true;
+      qemu = {
+        package = pkgs.qemu_kvm;
+        runAsRoot = true;
+        swtpm.enable = true;
+      };
     };
-  };
 
-  environment.systemPackages = [
-    pkgs.virtiofsd
-  ];
+    environment.systemPackages = [
+      pkgs.virtiofsd
+    ];
 
-  # Virt-Manager
+    # Virt-Manager
 
-  programs.virt-manager.enable = true;
-  virtualisation.spiceUSBRedirection.enable = true;
+    programs.virt-manager.enable = true;
+    virtualisation.spiceUSBRedirection.enable = true;
 
-  # User Access
+    # User Access
 
-  users.users.${vars.username}.extraGroups = [
-    "libvirtd"
-  ];
+    users.users.${vars.username}.extraGroups = [
+      "libvirtd"
+    ];
   };
 }

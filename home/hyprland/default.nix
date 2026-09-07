@@ -1,4 +1,9 @@
-{ aurora, lib, pkgs, ... }:
+{
+  aurora,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   # Aurora Hyprland
@@ -16,12 +21,17 @@
 
   # Hyprland Configuration Modules
 
-  xdg.configFile."hypr/config" = { source = ./config; recursive = true; };
-  xdg.configFile."hypr/config/host.lua".text = "return " + lib.generators.toLua { } {
-    monitors = aurora.desktop.monitors;
-    development = aurora.features.development;
-    laptop = aurora.hardware.formFactor == "laptop";
+  xdg.configFile."hypr/config" = {
+    source = ./config;
+    recursive = true;
   };
+  xdg.configFile."hypr/config/host.lua".text =
+    "return "
+    + lib.generators.toLua { } {
+      monitors = aurora.desktop.monitors;
+      development = aurora.features.development;
+      laptop = aurora.hardware.formFactor == "laptop";
+    };
 
   xdg.configFile."hypr/scripts/restore-wallpaper.sh".source = ./scripts/restore-wallpaper.sh;
 

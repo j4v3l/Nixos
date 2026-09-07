@@ -1,480 +1,159 @@
-<div align="center">
+# Aurora NixOS
 
-# NixOS
+A NixOS 26.05 configuration for x86-64 laptops and desktops, using Hyprland,
+Quickshell, Home Manager, and Stylix. This fork keeps the desktop from
+[subha279/NixOS](https://github.com/subha279/NixOS) and adds per-machine settings,
+optional application bundles, screen locking, and the Crimson theme.
 
-### A declarative, modular and keyboard-driven NixOS desktop
+Hardware profiles are evaluated in CI. GPU acceleration, suspend, and NPU
+inference need results from actual devices; see [testing](docs/testing.md).
 
-**Hyprland** · **Quickshell** · **Stylix** · **Home Manager**
+## Install
 
-<p>
-  <a href="https://github.com/subha279/NixOS">
-    <img src="https://img.shields.io/badge/NixOS-26.05-7E7DFF?style=for-the-badge&logo=nixos&logoColor=white" alt="NixOS 26.05">
-  </a>
-  <a href="https://github.com/subha279/NixOS">
-    <img src="https://img.shields.io/badge/Hyprland-Lua-58E1FF?style=for-the-badge" alt="Hyprland Lua">
-  </a>
-  <a href="https://github.com/subha279/NixOS">
-    <img src="https://img.shields.io/badge/Quickshell-QML-BB86FC?style=for-the-badge" alt="Quickshell">
-  </a>
-  <a href="https://github.com/subha279/NixOS">
-    <img src="https://img.shields.io/badge/Stylix-themes-C792EA?style=for-the-badge" alt="Stylix">
-  </a>
-</p>
-
-<p>
-  <a href="#-showcase">Showcase</a> ·
-  <a href="#-quick-start">Quick Start</a> ·
-  <a href="#-setup-manager">Setup Manager</a> ·
-  <a href="#-architecture">Architecture</a> ·
-  <a href="#-customisation">Customisation</a>
-</p>
-
-</div>
-
----
-
-## 🎬 Showcase
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=J9286xiVBNk">
-    <img src="https://img.youtube.com/vi/J9286xiVBNk/maxresdefault.jpg"
-         alt="NixOS + Hyprland desktop showcase"
-         width="900">
-  </a>
-</p>
-
-<p align="center">
-  <sub>▶ Watch the full desktop showcase on YouTube</sub>
-</p>
-
----
-
-## ✦ What this is
-
-A production-oriented, flake-based **NixOS laptop configuration** built around a clean Wayland workflow.
-
-| Layer | Stack |
-|---|---|
-| 🐧 OS | NixOS 26.05 · `x86_64-linux` |
-| 🖥️ Desktop | Hyprland · Lua |
-| 🐚 Shell | Quickshell · QML |
-| 🎨 Theme | Stylix · 7 themes |
-| 💻 Terminal | Kitty · Zsh |
-| ✏️ Editor | Neovim · 17 LSPs |
-| 📦 Management | Home Manager · Flakes |
-
-### Design goals
-
-`Declarative` → `Modular` → `Centralised` → `Reproducible` → `Keyboard-driven` → `Consistently themed`
-
----
-
-## 🚀 Quick Start
-
-### Boot into NixOS live ISO
+Boot a NixOS installation ISO in UEFI mode, connect to the internet, then:
 
 ```bash
-git clone https://github.com/subha279/NixOS.git ~/NixOS
-cd ~/NixOS
-./setup.sh
+nix-shell -p git python3
+git clone https://github.com/j4v3l/NixOS.git
+cd NixOS
+sudo ./setup.sh clean-install --host desktop --profile desktop
 ```
 
-The single setup manager handles installation, updates, rebuilds, validation, rollback and maintenance. The repository no longer depends on a separate installer entry point.
+Use a distinct host name for each machine. Setup detects CPU, graphics, NPU,
+and chassis information, shows the resulting settings, then asks you to review
+identity, bundles, and NVIDIA choices. Review driver compatibility in
+[hardware configuration](docs/hardware.md) before installing.
 
-> **Identity stays centralised:** user name, hostname, Git identity, locale and timezone live in `lib/variables.nix`. The installer can replace these values for a new machine.
+Clean installation erases the selected disk after confirmation. It creates a
+1 GiB EFI partition and an ext4 root partition, generates the target's hardware
+configuration, builds the system, installs GRUB, and prompts for a password.
+It is a whole-disk UEFI installer; it does not set up encryption or dual boot.
 
-> **Passwords are never stored in Nix.** Setup invokes `passwd` interactively.
-
----
-
-## 🧰 Setup Manager
-
-One entry point for the whole configuration:
+Preview the workflow without writing files or changing disks:
 
 ```bash
-./setup.sh
+./setup.sh clean-install --host desktop --profile desktop --dry-run
 ```
 
-```text
-╭────────────────────────────────────────────╮
-│        NixOS Configuration Manager         │
-│                 v1.1.0                     │
-╰────────────────────────────────────────────╯
-
-  SYSTEM
-  1  Install / Setup
-  2  Update configuration
-  3  Rebuild / Switch
-  4  Dry rebuild
-  5  Check flake
-
-  RECOVERY & TOOLS
-  6  Rollback
-  7  Refresh hardware config
-  8  Garbage collection
-  9  List generations
- 10  Test installer (preview)
-  0  Exit
-```
-
-### CLI mode
+On an existing NixOS installation, configure from that machine instead:
 
 ```bash
-./setup.sh install
-./setup.sh update
-./setup.sh rebuild
-./setup.sh dry
-./setup.sh check
-./setup.sh rollback
-./setup.sh hardware
-./setup.sh gc
-./setup.sh generations
-./setup.sh help
+./setup.sh configure --host desktop --profile desktop
 ```
 
-### Safe workflow
+This generates hardware against the running installation and offers a rebuild.
+It does not repartition. The checked-in `laptop` host belongs to the original
+machine: **do not install its disk UUIDs on another computer**. A desktop template
+contains settings only and becomes buildable once setup generates its hardware.
+
+## Configure
+
+Each host has three files:
 
 ```text
-check
-  ↓
-dry-build
-  ↓
-rebuild / switch
-  ↓
-verify generation
+hosts/<name>/settings.json                Identity, hardware, bundles, monitors
+hosts/<name>/hardware-configuration.nix   Generated filesystems and device modules
+hosts/<name>/default.nix                  Imports and local Nix overrides
 ```
 
-The installer backs up changed configuration before personalising it, generates hardware configuration, validates the flake and then rebuilds NixOS.
+JSON is imported as `config.aurora`; all options are declared in
+[modules/options.nix](modules/options.nix). Nix evaluation uses these saved
+values and never detects the evaluator's hardware. For example:
 
----
-
-## 📁 Architecture
-
-```text
-NixOS/
-├── flake.nix
-├── hosts/
-│   └── laptop/
-│       ├── default.nix
-│       └── hardware-configuration.nix
-│
-├── modules/
-│   ├── core
-│   ├── boot
-│   ├── networking
-│   ├── graphics
-│   ├── nvidia
-│   ├── audio
-│   ├── bluetooth
-│   ├── desktop
-│   ├── fonts
-│   ├── notifications
-│   ├── power
-│   ├── virtualisation
-│   ├── development
-│   ├── hardware/kreo-rgb
-│   └── stylix
-│
-├── home/
-│   ├── hyprland
-│   ├── quickshell
-│   ├── neovim
-│   ├── zsh
-│   ├── kitty
-│   ├── tmux
-│   ├── git
-│   ├── ssh
-│   └── theme
-│
-├── lib/
-│   ├── variables.nix
-│   └── themes.nix
-│
-└── setup.sh
+```json
+{
+  "hardware": { "formFactor": "desktop", "cpu": "amd", "gpus": ["amd"], "npu": "none" },
+  "features": { "development": true, "creator": false, "virtualisation": false, "ai": false, "wallpapers": true },
+  "desktop": { "monitors": [{ "output": "DP-1", "mode": "preferred", "position": "auto", "scale": 1.5 }] }
+}
 ```
 
-### System
+Merge those fields into the generated settings; retain `identity`. New hosts
+start with optional bundles and SSH disabled. The migrated laptop retains its
+existing identity, bundles, SSH access, and hardware file. Existing state
+versions remain unchanged. [Migration notes](docs/migration.md) cover the changes.
 
-Core Nix settings, GRUB, NetworkManager, users, fonts, PipeWire, Bluetooth, graphics, NVIDIA PRIME, XDG, power, Stylix, development, creator tools, gaming and virtualisation.
+| Bundle | Adds |
+| --- | --- |
+| `development` | Compilers, Zed, language servers, formatters, and automatic Neovim linting |
+| `creator` | OBS, DaVinci Resolve, Blender, GIMP, LibreOffice, and media tools |
+| `virtualisation` | libvirt and virt-manager |
+| `ai` | Ollama with an explicitly selected backend |
+| `wallpapers` | The two optional Wallhaven assets used for Crimson |
 
-### Home Manager
-
-Hyprland, Quickshell, Neovim, Zsh, Kitty, Git/SSH, Fastfetch, Obsidian, XDG and theme configuration.
-
----
-
-## 🖥️ Desktop Workflow
-
-### Hyprland
-
-Hyprland is configured in Lua:
-
-```text
-home/hyprland/
-├── hyprland.lua
-└── config/
-    ├── variables.lua
-    ├── keybinds.lua
-    ├── monitor.lua
-    ├── windowrules.lua
-    ├── layerules.lua
-    ├── animation.lua
-    ├── decoration.lua
-    ├── general.lua
-    ├── layout.lua
-    ├── input.lua
-    ├── env.lua
-    └── startup.lua
-```
-
-#### Motion
-
-Animation lives in `home/hyprland/config/animation.lua`, and it is the compositor
-that animates Quickshell — the bar, popups, launchers and notifications are all
-Wayland layer surfaces, so `layersIn` / `layersOut` are what run when a popup
-opens. QML does not animate those surfaces as well; two animations on one window
-is what makes motion look unstable.
-
-Every bezier there is monotonic: no control point has `y > 1`, so nothing travels
-past its target and springs back. If you add a curve, keep that property —
-`easeOutBack`-style curves are what produce the bounce.
-
-Common bindings:
-
-| Key | Action |
-|---|---|
-| `SUPER + T` | Terminal |
-| `SUPER + E` | File manager |
-| `SUPER + B` | Browser |
-| `SUPER + A` | App launcher |
-| `SUPER + C` | Theme picker |
-| `SUPER + P` | Wallpaper picker |
-| `SUPER + V` | Clipboard history |
-| `SUPER + I` | Emoji picker |
-| `SUPER + N` | Notes |
-| `SUPER + Z` | GUI editor |
-| `SUPER + F` | Toggle floating |
-| `SUPER + Q` | Close window |
-| `ALT + H/J/K/L` | Move focus |
-| `SUPER + 1…9/0` | Workspaces |
-| `SUPER + SHIFT + S` | Screenshot + annotation |
-
-### Quickshell
-
-Quickshell replaces the traditional Waybar/Wofi/Dunst stack with a single QML shell.
-
-```text
-config/
-├── shell.qml
-├── core/
-├── services/
-├── components/
-└── modules/
-```
-
-Useful IPC:
+## Apply and maintain
 
 ```bash
-qs ipc call launcher toggle
-qs ipc call theme toggle
-qs ipc call wallpaper toggle
-qs ipc call clipboard toggle
-qs ipc call emoji toggle
+./setup.sh check --host desktop
+./setup.sh dry --host desktop
+./setup.sh rebuild --host desktop
+./setup.sh hardware --host desktop
+./setup.sh generations --host desktop
+./setup.sh rollback --host desktop
 ```
 
----
+Setup remembers the selected host in `.setup-host`; `--host` overrides it.
+Without either, it uses `laptop` for compatibility. Backups go to
+`.setup-backups/<timestamp>/<host>/`. Rollback affects the installed system
+generation, regardless of the selected host name. `./setup.sh help` lists all
+commands.
 
-## 🎨 Theming
+New host files must be tracked for Git-based flakes. Setup stages just the
+host's settings, imports, and generated hardware file. After manual creation,
+run `git add hosts/<name>` before building.
 
-Theming has two halves.
+Home Manager links configuration from the active Nix store generation. After
+editing this repository, rebuild before reloading Hyprland or Quickshell.
 
-**Stylix** owns the toolkit layer — GTK, Qt and fontconfig — driven from
-`lib/themes.nix`. Those are the only three targets enabled; `autoEnable` is off
-so nothing else is themed behind your back.
+## Desktop
 
-**The Aurora generator** in `home/theme` owns everything else. It reads the same
-`lib/themes.nix` and writes a Lua, JSON, Kitty, Tmux and Starship file per theme,
-which Hyprland, Quickshell, Kitty, Neovim, tmux and the prompt then read at
-runtime. This is why switching theme does not need a rebuild.
+Every connected screen gets a bar. Module clicks open a popup on that screen;
+keyboard launchers open on the focused screen. Screens use their preferred mode
+unless overridden per host. Internal laptop screens remain enabled by default.
 
-Each target is generated as appearance only, so switching theme re-sources
-colours into a running program without disturbing its keybindings — `aurora-theme`
-reloads Hyprland, repaints every live Kitty socket, re-sources tmux and nudges
-open Zsh sessions.
+| Shortcut | Action |
+| --- | --- |
+| `SUPER+T`, `SUPER+E`, `SUPER+B` | Terminal, files, browser |
+| `SUPER+A` | Applications |
+| `SUPER+C`, `SUPER+P` | Theme and wallpaper pickers |
+| `SUPER+V`, `SUPER+I` | Clipboard and emoji pickers |
+| `SUPER+L` | Lock |
+| `SUPER+Z` | Zed, when the development bundle is enabled |
 
-Available themes:
+Hypridle locks after ten minutes and before suspend. Automatic suspend is
+disabled. Battery, backlight, and Bluetooth controls appear only when available;
+a desktop without a battery can still select power profiles.
 
-```text
-catppuccin-mocha · tokyo-night · gruvbox
-one-dark · everforest · rose-pine · kanagawa
-```
+## Themes
 
-Each is defined once in `lib/themes.nix` and generated out to Lua, JSON, a Kitty
-conf, a Tmux conf and a Starship TOML, so Hyprland, Quickshell, Kitty, Neovim,
-tmux and the prompt all read the same palette.
-
-Runtime theme switching:
-
-```text
-SUPER + C
-```
-
-Shared theme definitions:
-
-```text
-lib/themes.nix
-```
-
-Shared identity/configuration:
-
-```text
-lib/variables.nix
-```
-
----
-
-## 💻 Everyday Commands
+`lib/themes.nix` defines the shared palettes and fonts. Crimson adds charcoal
+backgrounds, burgundy surfaces, warm pale text, and pink/red accents. Catppuccin
+Mocha remains the default. A saved theme and wallpaper survive rebuilds.
 
 ```bash
-cd ~/NixOS
-
-# Validate
-./setup.sh check
-
-# Test without switching
-./setup.sh dry
-
-# Rebuild and switch
-./setup.sh rebuild
-
-# Update repository + flake inputs
-./setup.sh update
-
-# Roll back
-./setup.sh rollback
-
-# List generations
-./setup.sh generations
+aurora-theme crimson
 ```
 
-### Reloading vs applying configuration changes
+Runtime switching updates Quickshell, Hyprland, Kitty, Neovim, tmux, Starship,
+and the next lock screen. GTK and Qt use the configured default through Stylix:
+change `global.activeTheme` in `lib/themes.nix`, rebuild, and restart toolkit
+applications to apply that palette.
 
-> **Important:** `hyprctl reload` and restarting Quickshell only reload the **currently installed** configuration.
-> If the Lua/QML file is managed by Home Manager, editing the repository does **not** update the live config until Home Manager/NixOS activation runs.
+Enable `features.wallpapers`, rebuild, and use `SUPER+P` to choose either
+[13pgxw](https://wallhaven.cc/w/13pgxw) or
+[3q6m6y](https://wallhaven.cc/w/3q6m6y). Local images and managed symlinks in
+`~/Wallpapers` are also discovered. See [wallpaper attribution and downloads](docs/wallpapers.md).
 
-| Change | After editing the repository |
-|---|---|
-| Hyprland Lua | `./setup.sh rebuild` → `hyprctl reload` |
-| Quickshell QML | `./setup.sh rebuild` → `systemctl --user restart quickshell` |
-| Debug current Quickshell config | `qs` |
-| NixOS/Home Manager `.nix` | `./setup.sh rebuild` |
-| Runtime-only Hyprland change | `hyprctl reload` |
-| Runtime-only Quickshell restart | `systemctl --user restart quickshell` |
+## Troubleshooting and development
 
-For a fast development loop:
+See [hardware](docs/hardware.md), [testing and measurements](docs/testing.md),
+and [migration](docs/migration.md). On Linux, the pinned tools and checks are:
 
 ```bash
-# Apply the Nix/Home Manager changes
-./setup.sh rebuild
-
-# Then reload the running desktop component if needed
-hyprctl reload
-systemctl --user restart quickshell
+nix develop -c bash scripts/check.sh --format
+nix flake check --all-systems --no-build
 ```
 
-> **Why?** Home Manager usually links managed files from the active Nix store generation. The running system therefore sees the generation that was activated, not arbitrary edits sitting in `~/NixOS`.
-
----
-
-## 🛠️ Customisation
-
-### Change a keybinding
-
-```text
-home/hyprland/config/keybinds.lua
-```
-
-Then:
-
-```bash
-hyprctl reload
-```
-
-### Change an application
-
-```text
-home/hyprland/config/variables.lua
-```
-
-Bindings reference the shared variables, so one change propagates cleanly.
-
-### Change identity
-
-```text
-lib/variables.nix
-```
-
-Keep shared values there instead of duplicating them across modules.
-
----
-
-## 🧯 Recovery
-
-Rollback to the previous generation:
-
-```bash
-./setup.sh rollback
-```
-
-Or directly:
-
-```bash
-sudo nixos-rebuild switch --rollback
-```
-
-List generations:
-
-```bash
-./setup.sh generations
-```
-
----
-
-## 🧭 Philosophy
-
-```text
-             ┌──────────────┐
-             │  Declarative │
-             └──────┬───────┘
-                    ↓
-             ┌──────────────┐
-             │    Modular   │
-             └──────┬───────┘
-                    ↓
-             ┌──────────────┐
-             │  Centralised │
-             └──────┬───────┘
-                    ↓
-             ┌──────────────┐
-             │ Reproducible │
-             └──────┬───────┘
-                    ↓
-             ┌──────────────┐
-             │ Keyboard-led │
-             └──────┬───────┘
-                    ↓
-             ┌──────────────┐
-             │  Consistent  │
-             │    Theme     │
-             └──────────────┘
-```
-
-The goal is simple: **one declarative source of truth for the OS, desktop, shell, applications, identity and theme.**
-
----
-
-<div align="center">
-
-<sub>Built for a fast, minimal and reproducible Wayland workflow.</sub>
-
-</div>
+The original desktop design and configuration are credited to
+[subha279](https://github.com/subha279/NixOS). The upstream
+[showcase](https://www.youtube.com/watch?v=J9286xiVBNk) depicts that version.

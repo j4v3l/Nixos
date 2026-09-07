@@ -210,11 +210,7 @@ Singleton {
             return 1;
         return 2;
     }
-
-    // ------------------------------------------------------------
     // Model sync (keeps delegates stable => real animations)
-    // ------------------------------------------------------------
-
     function rebuildModel() {
         const list = [];
 

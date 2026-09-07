@@ -173,7 +173,7 @@ Item {
     // exactly as it did before.
 
     NowPlaying {
-        consumerId: root.screen ? root.screen.name : "clock"
+        consumerId: root.screen ? root.screen.name : ""
         anchors.top: timeRow.bottom
         anchors.topMargin: 2
 

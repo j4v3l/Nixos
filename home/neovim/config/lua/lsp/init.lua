@@ -267,26 +267,26 @@ end
 
 configure_capabilities()
 
-if vim.g.aurora_development then
-vim.lsp.enable({
-	"lua_ls",
-	"rust_analyzer",
-	"ts_ls",
-	"pyright",
-	"clangd",
-	"nixd",
-	"bashls",
-	"jsonls",
-	"html",
-	"cssls",
-	"eslint",
-	"yamlls",
-	"marksman",
-	"tailwindcss",
-	"dockerls",
-	"taplo",
-	"qmlls",
-})
+if require("aurora.host").development then
+	vim.lsp.enable({
+		"lua_ls",
+		"rust_analyzer",
+		"ts_ls",
+		"pyright",
+		"clangd",
+		"nixd",
+		"bashls",
+		"jsonls",
+		"html",
+		"cssls",
+		"eslint",
+		"yamlls",
+		"marksman",
+		"tailwindcss",
+		"dockerls",
+		"taplo",
+		"qmlls",
+	})
 
 end
 

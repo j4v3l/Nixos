@@ -1,70 +1,85 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages =
+    with pkgs;
+    [
 
-    # Browser
+      # Browser
 
-    zen-browser
+      zen-browser
 
-    # File Manager
+      # File Manager
 
-    shared-mime-info
-    ffmpegthumbnailer
+      shared-mime-info
+      ffmpegthumbnailer
 
-    # Archives
+      # Archives
 
-    p7zip
-    unar
+      p7zip
+      unar
 
-    # Archive Manager
-    file-roller
+      # Archive Manager
+      file-roller
 
-    # Audio
+      # Audio
 
-    pavucontrol
+      pavucontrol
 
-    # Theming
+      # Theming
 
-    nwg-look
-    qt6Packages.qt6ct
-    kdePackages.qtstyleplugin-kvantum
+      nwg-look
+      qt6Packages.qt6ct
+      kdePackages.qtstyleplugin-kvantum
 
-    # Network
+      # Network
 
-    networkmanagerapplet
+      networkmanagerapplet
 
-    # Screenshots
+      # Screenshots
 
-    grim
-    slurp
-    swappy
+      grim
+      slurp
+      swappy
 
-    # Image Viewer / Basic Editor
+      # Image Viewer / Basic Editor
 
-    kdePackages.gwenview
-    imagemagick
+      kdePackages.gwenview
+      imagemagick
 
-    # Authentication
+      # Authentication
 
-    kdePackages.polkit-kde-agent-1
+      kdePackages.polkit-kde-agent-1
 
-    # Wallpaper
+      # Wallpaper
 
-    awww
+      awww
 
-    # Launcher
+      # Launcher
 
-    # Notifications
+      # Notifications
 
-    libnotify
+      libnotify
 
-    # Desktop Utilities
+      # Desktop Utilities
 
-    xdg-utils
+      xdg-utils
 
-  ] ++ lib.optionals config.aurora.features.creator (with pkgs; [
-    (obs-studio.override { cudaSupport = builtins.elem "nvidia" config.aurora.hardware.gpus; })
-    ffmpeg vlc libreoffice-fresh gimp blender
-  ]);
+    ]
+    ++ lib.optionals config.aurora.features.creator (
+      with pkgs;
+      [
+        (obs-studio.override { cudaSupport = builtins.elem "nvidia" config.aurora.hardware.gpus; })
+        ffmpeg
+        vlc
+        libreoffice-fresh
+        gimp
+        blender
+      ]
+    );
 }

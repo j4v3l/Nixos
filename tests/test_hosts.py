@@ -75,10 +75,16 @@ class Settings(unittest.TestCase):
 
     def test_reconfiguration_redetects_hardware_only_when_requested(self):
         original = json.loads((self.root/'hosts/laptop/settings.json').read_text())
+        original['features']['ai'] = False
+        (self.root/'hosts/laptop/settings.json').write_text(json.dumps(original))
         changed = host.prepare(self.root, 'laptop', data=FIXTURES['amd-desktop'], redetect=True)
         self.assertEqual(changed['identity'], original['identity'])
         self.assertEqual(changed['features'], original['features'])
         self.assertEqual(changed['hardware']['gpus'], ['amd'])
+
+    def test_conflicting_compute_backend_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'backend does not match'):
+            host.prepare(self.root, 'laptop', data=FIXTURES['amd-desktop'], redetect=True)
 
     def test_json_escaping_and_no_borrowed_uuid(self):
         settings = json.loads((self.root/'templates/desktop/settings.json').read_text())

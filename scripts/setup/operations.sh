@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 flake_check() {
     need_cmd nix
     section "Flake validation"
@@ -27,7 +28,7 @@ update_config() {
     need_cmd git
     need_cmd nix
     section "Update configuration"
-    cd "$ROOT"
+    cd "$ROOT" || return 1
     if [[ -n "$(git status --porcelain)" ]]; then
         warning "Working tree contains uncommitted changes."
         git status --short
@@ -302,7 +303,7 @@ EOF
 }
 
 main() {
-    cd "$ROOT"
+    cd "$ROOT" || return 1
     case "${1:-menu}" in
     menu) menu ;;
     # `install` means "install this machine" in whichever environment you are
@@ -343,4 +344,3 @@ main() {
         ;;
     esac
 }
-

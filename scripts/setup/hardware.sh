@@ -1,7 +1,10 @@
+# shellcheck shell=bash
 get_var() {
     python3 "$ROOT/scripts/host-config.py" get --root "$ROOT" --host "$HOST" --key "identity.$1"
 }
 
+# installation.sh also calls this with --redetect.
+# shellcheck disable=SC2120
 host_collect_settings() {
     need_cmd python3
     local -a args=(prepare --root "$ROOT" --host "$HOST" --interactive)
@@ -18,7 +21,8 @@ host_stage_files() {
 }
 
 backup_config() {
-    local backup="$ROOT/.setup-backups/$(date +%Y%m%d-%H%M%S)/$HOST"
+    local backup
+    backup="$ROOT/.setup-backups/$(date +%Y%m%d-%H%M%S)/$HOST"
     mkdir -p "$backup"
     [[ ! -d "$ROOT/hosts/$HOST" ]] || cp -a "$ROOT/hosts/$HOST/." "$backup/"
     success "Backup: $backup"
@@ -31,6 +35,8 @@ write_hardware_config() {
     if [[ -n "$target_root" ]]; then
         nixos-generate-config --root "$target_root" --show-hardware-config >"$temporary" || { rm -f "$temporary"; return 1; }
     else
+        # Keep the temporary file owned by the user; only detection needs root.
+        # shellcheck disable=SC2024
         sudo nixos-generate-config --show-hardware-config >"$temporary" || { rm -f "$temporary"; return 1; }
     fi
     [[ -s "$temporary" ]] || { rm -f "$temporary"; return 1; }
