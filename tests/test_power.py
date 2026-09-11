@@ -123,6 +123,22 @@ ci_storage_cleanup
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), 'CLEAN:close aurora')
 
+    def test_swap_format_failure_still_closes_owned_volume_group(self):
+        result = bash('''set -euo pipefail
+source scripts/setup/installation.sh
+CI_LAYOUT=encrypted; CI_ROOT_PART=/dev/test2; CI_PASSPHRASE=only-a-fixture; CI_VG=aurora_test; CI_SWAP_GIB=10
+cryptsetup() { cat >/dev/null; }
+pvcreate() { :; }; vgcreate() { :; }; lvcreate() { :; }; mkswap() { return 1; }
+if ci_encrypt; then exit 90; fi
+mountpoint() { return 1; }
+swapoff() { echo UNSAFE; return 1; }
+vgchange() { echo "VG:$*"; }
+cryptsetup() { echo "CRYPT:$*"; }
+ci_storage_cleanup
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ['VG:-an aurora_test', 'CRYPT:close aurora'])
+
     def test_passphrase_mismatch_and_missing_key_stop_format(self):
         result = bash('''source scripts/setup/installation.sh
 CI_LAYOUT=encrypted

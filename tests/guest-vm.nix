@@ -23,9 +23,8 @@ pkgs.testers.runNixOSTest {
   testScript = ''
     machine.start()
     machine.wait_for_unit("multi-user.target")
-    machine.wait_until_succeeds("pgrep -u nixos -x Hyprland")
-    machine.wait_until_succeeds("su - nixos -c 'XDG_RUNTIME_DIR=/run/user/1000 hyprctl -i 0 monitors -j' | grep -q '\"name\"'")
-    machine.wait_until_succeeds("pgrep -u nixos -x qs")
+    machine.wait_until_succeeds("su - nixos -c 'XDG_RUNTIME_DIR=/run/user/1000 hyprctl -i 0 monitors -j' | grep -q '\"name\"'", timeout=180)
+    machine.wait_until_succeeds("su - nixos -c 'XDG_RUNTIME_DIR=/run/user/1000 qs ipc --any-display show' | grep -q launcher", timeout=180)
     errors = machine.succeed("su - nixos -c 'XDG_RUNTIME_DIR=/run/user/1000 hyprctl -i 0 configerrors'")
     assert not errors.strip(), errors
     machine.succeed("su - nixos -c 'XDG_RUNTIME_DIR=/run/user/1000 systemctl --user is-active quickshell.service'")

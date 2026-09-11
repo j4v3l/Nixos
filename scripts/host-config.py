@@ -109,10 +109,15 @@ def validate(settings):
     if storage.get('layout', 'plain') not in ('plain', 'encrypted'):
         raise ValueError('Unknown storage layout')
     for key in ('luksUuid', 'swapUuid'):
-        if storage.get(key) and not re.fullmatch(r'[a-fA-F0-9-]+', storage[key]):
+        if storage.get(key) and not re.fullmatch(r'[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}', storage[key]):
             raise ValueError('Invalid storage UUID')
     if type(storage.get('swapGiB', 0)) is not int or storage.get('swapGiB', 0) < 0:
         raise ValueError('Invalid swap size')
+    if settings.get('power', {}).get('hibernate') and (
+        hw['formFactor'] != 'laptop' or storage.get('layout') != 'encrypted'
+        or not storage.get('luksUuid') or not storage.get('swapUuid') or not storage.get('swapGiB')
+    ):
+        raise ValueError('Hibernation requires generated encrypted storage and persistent swap')
     gpus = hw.get('gpus', [])
     if hw.get('npu') == 'intel' and hw.get('cpu') != 'intel':
         raise ValueError('Intel NPU requires an Intel CPU')

@@ -195,6 +195,7 @@ let
       { hardware = variants.vm; }
     ];
     assert evaluated.vm.config.services.qemuGuest.enable;
+    assert !evaluated.vm.config.hardware.enableRedistributableFirmware;
     assert !evaluated.vm.config.services.power-profiles-daemon.enable;
     assert !evaluated.vm.config.hardware.cpu.intel.updateMicrocode;
     assert !evaluated.vm.config.hardware.cpu.amd.updateMicrocode;

@@ -7,6 +7,7 @@ CI_CRYPT_NAME="aurora"
 CI_VG=""
 CI_LUKS_OPENED=0
 CI_VG_CREATED=0
+CI_PERSISTENT_SWAP_ACTIVE=0
 
 ci_storage_plan() {
     local model form ram_kib minimum size_bytes
@@ -52,6 +53,7 @@ ci_read_passphrase() {
     # Never trace secrets, including when the installer was started with bash -x.
     set +x
     local second
+    export -n CI_PASSPHRASE 2>/dev/null || true
     IFS= read -r -s -p "LUKS passphrase (at least 8 characters): " CI_PASSPHRASE || return 1
     printf '\n'
     IFS= read -r -s -p "Confirm LUKS passphrase: " second || return 1
@@ -85,6 +87,7 @@ ci_encrypt() {
     CI_SWAP_DEVICE="/dev/$CI_VG/swap"
     mkswap "$CI_SWAP_DEVICE" || return 1
     swapon --priority 10 "$CI_SWAP_DEVICE" || return 1
+    CI_PERSISTENT_SWAP_ACTIVE=1
 }
 
 ci_storage_settings() {
@@ -120,7 +123,10 @@ ci_storage_cleanup() {
     if mountpoint -q "$CI_TARGET"; then
         umount -R "$CI_TARGET" || { error "Target still mounted; leaving its encrypted mapping open for recovery."; return 1; }
     fi
-    [[ -z "$CI_SWAP_DEVICE" ]] || swapoff "$CI_SWAP_DEVICE" || return 1
+    if [[ "$CI_PERSISTENT_SWAP_ACTIVE" -eq 1 ]]; then
+        swapoff "$CI_SWAP_DEVICE" || return 1
+        CI_PERSISTENT_SWAP_ACTIVE=0
+    fi
     if [[ "$CI_VG_CREATED" -eq 1 ]]; then
         vgchange -an "$CI_VG" || return 1
         CI_VG_CREATED=0

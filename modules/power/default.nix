@@ -9,7 +9,10 @@ let
   laptop = cfg.hardware.formFactor == "laptop";
   physical = cfg.hardware.formFactor != "vm";
   storage = cfg.storage;
-  uuid = value: builtins.match "[a-fA-F0-9-]+" value != null;
+  uuid =
+    value:
+    builtins.match "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}" value
+    != null;
   tools = pkgs.writeShellScriptBin "aurora-power" ''
     export PATH=${
       lib.makeBinPath [

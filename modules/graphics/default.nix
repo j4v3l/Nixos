@@ -11,7 +11,7 @@ let
   media = if hw.intelMediaDriver == "legacy" then "intel-vaapi-driver" else "intel-media-driver";
 in
 {
-  hardware.enableRedistributableFirmware = lib.mkDefault true;
+  hardware.enableRedistributableFirmware = lib.mkDefault physical;
   hardware.cpu.intel.updateMicrocode = lib.mkDefault (physical && hw.cpu == "intel");
   hardware.cpu.amd.updateMicrocode = lib.mkDefault (physical && hw.cpu == "amd");
   boot.kernelModules =
