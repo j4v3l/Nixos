@@ -51,7 +51,7 @@ pkgs.testers.runNixOSTest {
         swapoff "$CI_SWAP_DEVICE"
         mkswap -U ${swapUuid} "$CI_SWAP_DEVICE"
         swapon "$CI_SWAP_DEVICE"
-        cryptsetup luksUUID --uuid ${luksUuid} "$CI_LUKS_PART"
+        cryptsetup luksUUID --batch-mode --uuid ${luksUuid} "$CI_LUKS_PART"
         ci_mount
         ci_generate_hardware
         ci_verify_hardware
@@ -80,7 +80,7 @@ pkgs.testers.runNixOSTest {
   };
   testScript = { nodes, ... }: ''
     machine.wait_for_unit("multi-user.target")
-    machine.succeed("bash /etc/encrypted-install-test.sh")
+    machine.succeed("timeout 180 bash /etc/encrypted-install-test.sh")
     machine.succeed("${nodes.machine.specialisation.encrypted.configuration.system.build.toplevel}/bin/switch-to-configuration boot")
     machine.succeed("sync")
     machine.crash()
