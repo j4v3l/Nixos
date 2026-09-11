@@ -11,7 +11,7 @@ pkgs.testers.runNixOSTest {
     ];
     environment.etc."installer-test.sh".source = pkgs.writeShellScript "installer-test" ''
       set -euo pipefail
-      source ${../scripts/setup/installation.sh}
+      source ${../scripts/setup}/installation.sh
       source ${../scripts/setup/hardware.sh}
       section() { :; }; info() { :; }; success() { :; }; run_cmd() { :; }
       error() { echo "$*" >&2; }; warning() { echo "$*" >&2; }

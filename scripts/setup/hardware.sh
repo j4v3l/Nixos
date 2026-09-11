@@ -9,6 +9,7 @@ host_collect_settings() {
     need_cmd python3
     local -a args=(prepare --root "$ROOT" --host "$HOST" --interactive)
     [[ -n "$PROFILE" ]] && args+=(--profile "$PROFILE")
+    [[ -n "${MODEL:-}" ]] && args+=(--model "$MODEL")
     HOST_SETTINGS="$(python3 "$ROOT/scripts/host-config.py" "${args[@]}" "$@")" || return 1
 }
 
@@ -63,6 +64,7 @@ install_flow() {
         clean_install
         return
     fi
+    [[ -z "${INSTALL_LAYOUT:-}${INSTALL_SWAP_GIB:-}" ]] || die "Storage flags require clean-install from an installer ISO."
     host_collect_settings || return 1
     if [[ "$SETUP_DRY_RUN" -eq 1 ]]; then
         info "Would write settings and generate hardware for $HOST. Nothing changed."

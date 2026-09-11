@@ -65,7 +65,7 @@ ROOT="$PWD"; HOST=desktop; VERSION=test; SETUP_DRY_RUN=1
 source scripts/setup/installation.sh
 clear_screen() { :; }; panel() { :; }; warning() { :; }; info() { :; }; section() { :; }; verdict() { :; }
 CYAN=""; ICON_INFO=""
-ci_preflight() { :; }; ci_collect_identity() { :; }; ci_show_disks() { :; }; ci_select_target_disk() { :; }
+ci_preflight() { :; }; ci_collect_identity() { :; }; ci_storage_plan() { :; }; ci_read_passphrase() { :; }; ci_show_disks() { :; }; ci_select_target_disk() { :; }
 for step in ci_require_live ci_confirm_destroy ci_release_target ci_partition ci_format ci_mount ci_place_repo; do
     eval "$step() { echo UNSAFE:$step >&2; return 91; }"
 done

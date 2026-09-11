@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 import tempfile
 
 HOST_RE = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]*\Z")
@@ -33,7 +34,15 @@ def inventory():
                         "device": read(device/'device').removeprefix('0x'),
                         "class": read(device/'class').removeprefix('0x')[:4],
                         "bootVga": read(device/'boot_vga') == '1'})
-    return {"cpuVendor": match.group(1) if match else "", "chassisType": read('/sys/class/dmi/id/chassis_type'), "pci": devices}
+    memory = re.search(r'MemTotal:\s*(\d+)', read('/proc/meminfo'))
+    try:
+        virt = subprocess.run(['systemd-detect-virt', '--vm'], capture_output=True, text=True).stdout.strip()
+    except OSError:
+        virt = 'none'
+    return {"cpuVendor": match.group(1) if match else "", "chassisType": read('/sys/class/dmi/id/chassis_type'),
+            "pci": devices, "ramKiB": int(memory.group(1)) if memory else 0,
+            "virtualization": virt, "cpuModel": next((line.split(':', 1)[1].strip() for line in cpu.splitlines() if line.startswith('model name')), ''),
+            "dmi": {key: read('/sys/class/dmi/id/' + key) for key in ('sys_vendor', 'product_name', 'product_version', 'bios_version', 'bios_date')}}
 
 
 def detect(data):
@@ -47,6 +56,15 @@ def detect(data):
         if p.get('device') in NPU_IDS.get(p.get('vendor'), set()):
             npu = 'intel' if p['vendor'] == '8086' else 'amd'
     hw = {'formFactor': 'laptop' if laptop else 'desktop', 'cpu': cpu, 'gpus': gpus, 'npu': npu}
+    dmi = data.get('dmi', {})
+    identity = ' '.join(dmi.get(key, '') for key in ('product_name', 'product_version')).upper()
+    model = 'yoga-14akp10' if '14AKP10' in identity else 'yoga-14irl8' if '14IRL8' in identity else 'generic'
+    hw['model'] = model
+    hw['inventory'] = data
+    virtual = data.get('virtualization', 'none') not in ('', 'none') or any(v in identity for v in ('QEMU', 'KVM', 'PROXMOX'))
+    if virtual:
+        hw.update(formFactor='vm', model='generic', gpus=[], npu='none')
+        return hw
     nvidia = [p for p in graphics if p['vendor'] == '10de']
     integrated = [p for p in graphics if p['vendor'] in ('8086', '1002')]
     if nvidia:
@@ -67,8 +85,8 @@ def validate(settings):
         raise ValueError('Invalid Linux username')
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]*', identity['hostname']):
         raise ValueError('Invalid hostname')
-    if settings['hardware']['formFactor'] not in ('laptop', 'desktop'):
-        raise ValueError('Profile must be laptop or desktop')
+    if settings['hardware']['formFactor'] not in ('laptop', 'desktop', 'vm'):
+        raise ValueError('Profile must be laptop, desktop or vm')
     if any(not isinstance(v, str) for v in identity.values()):
         raise ValueError('Identity fields must be strings')
     for key in ('timezone', 'locale'):
@@ -76,6 +94,25 @@ def validate(settings):
             raise ValueError(f'Invalid {key}')
 
     hw = settings['hardware']
+    model = hw.get('model', 'generic')
+    if model not in ('generic', 'yoga-14akp10', 'yoga-14irl8'):
+        raise ValueError('Unknown hardware model')
+    if model != 'generic':
+        vendor = 'amd' if model == 'yoga-14akp10' else 'intel'
+        if hw['formFactor'] != 'laptop' or hw['cpu'] != vendor or hw['gpus'] != [vendor]:
+            raise ValueError('Yoga model does not match detected CPU/GPU/profile')
+        if model == 'yoga-14irl8' and hw.get('npu', 'none') != 'none':
+            raise ValueError('Yoga 14IRL8 has no Intel NPU')
+    if hw['formFactor'] == 'vm' and (hw.get('npu', 'none') != 'none' or settings.get('power', {}).get('hibernate')):
+        raise ValueError('VM guests cannot enable physical NPU or hibernation')
+    storage = settings.get('storage', {})
+    if storage.get('layout', 'plain') not in ('plain', 'encrypted'):
+        raise ValueError('Unknown storage layout')
+    for key in ('luksUuid', 'swapUuid'):
+        if storage.get(key) and not re.fullmatch(r'[a-fA-F0-9-]+', storage[key]):
+            raise ValueError('Invalid storage UUID')
+    if type(storage.get('swapGiB', 0)) is not int or storage.get('swapGiB', 0) < 0:
+        raise ValueError('Invalid swap size')
     gpus = hw.get('gpus', [])
     if hw.get('npu') == 'intel' and hw.get('cpu') != 'intel':
         raise ValueError('Intel NPU requires an Intel CPU')
@@ -105,7 +142,7 @@ def prompt(label, default):
     return answer.rstrip('\n') or default
 
 
-def prepare(root, name, profile=None, data=None, interactive=False, redetect=False):
+def prepare(root, name, profile=None, data=None, interactive=False, redetect=False, model=None):
     file = root/'hosts'/name/'settings.json'
     existing = file.exists()
     settings = json.loads((file if existing else root/'templates/desktop/settings.json').read_text())
@@ -113,6 +150,8 @@ def prepare(root, name, profile=None, data=None, interactive=False, redetect=Fal
         settings['hardware'] = detect(data if data is not None else inventory())
     if profile:
         settings['hardware']['formFactor'] = profile
+    if model:
+        settings['hardware']['model'] = model
     if not existing:
         settings['identity']['hostname'] = name
         settings['identity']['username'] = os.environ.get('SUDO_USER', os.environ.get('USER', 'nixos'))
@@ -172,7 +211,8 @@ def main():
     parser.add_argument('command', choices=['detect', 'prepare', 'apply', 'get'])
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--host', default='laptop')
-    parser.add_argument('--profile', choices=['desktop', 'laptop'])
+    parser.add_argument('--profile', choices=['desktop', 'laptop', 'vm'])
+    parser.add_argument('--model', choices=['generic', 'yoga-14akp10', 'yoga-14irl8'])
     parser.add_argument('--inventory', type=Path)
     parser.add_argument('--interactive', action='store_true')
     parser.add_argument('--redetect', action='store_true')
@@ -185,7 +225,7 @@ def main():
         if args.command == 'detect':
             result = detect(data if data is not None else inventory())
         elif args.command == 'prepare':
-            result = prepare(args.root, args.host, args.profile, data, args.interactive, args.redetect)
+            result = prepare(args.root, args.host, args.profile, data, args.interactive, args.redetect, args.model)
         elif args.command == 'apply':
             apply(args.root, args.host, json.load(sys.stdin))
             return

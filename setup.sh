@@ -9,13 +9,19 @@ VERSION="2.0"
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 HOST=""
 PROFILE=""
+MODEL=""
+INSTALL_LAYOUT=""
+INSTALL_SWAP_GIB=""
 SETUP_DRY_RUN=0
 COMMAND=""
 while (($#)); do
     case "$1" in
-        --host|--profile)
+        --host|--profile|--model|--layout|--swap-gib)
             (($# >= 2)) || { echo "Missing value for $1" >&2; exit 2; }
-            if [[ "$1" == "--host" ]]; then HOST="$2"; else PROFILE="$2"; fi
+            case "$1" in
+                --host) HOST="$2" ;; --profile) PROFILE="$2" ;; --model) MODEL="$2" ;;
+                --layout) INSTALL_LAYOUT="$2" ;; --swap-gib) INSTALL_SWAP_GIB="$2" ;;
+            esac
             shift 2 ;;
         --dry-run|-n) SETUP_DRY_RUN=1; shift ;;
         --help|-h) COMMAND=help; shift ;;
@@ -27,7 +33,15 @@ done
 if [[ -z "$HOST" && -f "$ROOT/.setup-host" ]]; then IFS= read -r HOST < "$ROOT/.setup-host"; fi
 HOST="${HOST:-laptop}"
 [[ "$HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]] || { echo "Invalid host name" >&2; exit 2; }
-[[ -z "$PROFILE" || "$PROFILE" == "laptop" || "$PROFILE" == "desktop" ]] || { echo "Invalid profile" >&2; exit 2; }
+[[ -z "$PROFILE" || "$PROFILE" == "laptop" || "$PROFILE" == "desktop" || "$PROFILE" == "vm" ]] || { echo "Invalid profile" >&2; exit 2; }
+[[ -z "$INSTALL_LAYOUT" || "$INSTALL_LAYOUT" == plain || "$INSTALL_LAYOUT" == encrypted ]] || { echo "Invalid layout" >&2; exit 2; }
+[[ -z "$INSTALL_SWAP_GIB" || "$INSTALL_SWAP_GIB" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid swap size" >&2; exit 2; }
+if [[ -n "$INSTALL_LAYOUT$INSTALL_SWAP_GIB" ]]; then
+    case "$COMMAND" in
+        clean-install|clean_install|install|help) ;;
+        *) echo "Storage flags apply only to fresh installation." >&2; exit 2 ;;
+    esac
+fi
 FLAKE_TARGET="$ROOT#$HOST"
 V_FAILED=0
 HOST_SETTINGS=""

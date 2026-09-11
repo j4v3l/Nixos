@@ -273,7 +273,7 @@ menu() {
 usage() {
     cat <<EOF
 Aurora NixOS setup
-Usage: ./setup.sh <command> [--host NAME] [--profile laptop|desktop] [--dry-run]
+Usage: ./setup.sh <command> [--host NAME] [--profile laptop|desktop|vm] [--model MODEL] [--layout plain|encrypted] [--swap-gib N] [--dry-run]
 
 configure       Review settings and generate hardware for a running NixOS host
 install         Configure a running host, or run clean-install from a live ISO
@@ -293,6 +293,9 @@ help, version   Show help or version
 
 Examples:
   ./setup.sh configure --host desktop --profile desktop
+  ./setup.sh configure --host vm --profile vm
+  ./setup.sh clean-install --host yoga-amd --profile laptop --model yoga-14akp10 --layout encrypted
+  ./setup.sh clean-install --host yoga-intel --profile laptop --model yoga-14irl8 --layout encrypted
   ./setup.sh clean-install --host desktop --profile desktop --dry-run
   ./setup.sh rebuild --host desktop
 

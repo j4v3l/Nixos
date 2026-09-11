@@ -1,4 +1,6 @@
 # shellcheck shell=bash
+# shellcheck source=scripts/setup/storage.sh
+source "$(dirname -- "${BASH_SOURCE[0]}")/storage.sh"
 CI_TARGET="/mnt"
 CI_ESP_LABEL="EFI"
 CI_ROOT_LABEL="nixos"
@@ -333,6 +335,7 @@ ci_confirm_destroy() {
         "$CI_ESP" "$CI_ESP_LABEL" "$CI_TARGET"
     printf '           %-18s remainder ext4   label=%-6s -> %s\n' \
         "$CI_ROOT_PART" "$CI_ROOT_LABEL" "$CI_TARGET"
+    [[ "$CI_LAYOUT" != encrypted ]] || info "Root storage will be LUKS2 with root and $CI_SWAP_GIB GiB swap LVs."
     hr
     echo
 
@@ -470,7 +473,7 @@ ci_partition() {
     ci_wait_for_part "$CI_ESP" || return 1
     ci_wait_for_part "$CI_ROOT_PART" || return 1
 
-    success "GPT written by $CI_PARTITIONER: 1 GiB ESP plus ext4 root."
+    success "GPT written by $CI_PARTITIONER: 1 GiB ESP plus root storage."
 }
 
 ci_format() {
@@ -481,6 +484,8 @@ ci_format() {
             error "Failed to format EFI partition: $CI_ESP"
             return 1
         }
+
+    ci_encrypt || return 1
 
     ci_run mkfs.ext4 -F -L "$CI_ROOT_LABEL" "$CI_ROOT_PART" ||
         {
@@ -567,6 +572,12 @@ ci_mount() {
 # swapDevices = [ ] and nothing is left behind.
 ci_setup_swap() {
     section "Install-time swap"
+    if [[ "$CI_LAYOUT" == encrypted ]]; then
+        [[ "$CI_DRY_RUN" -eq 1 ]] && { info "Would use persistent encrypted swap during installation."; return 0; }
+        export TMPDIR="$CI_TARGET/.setup-tmp"
+        mkdir -p "$TMPDIR"
+        return 0
+    fi
 
     if [[ "$CI_DRY_RUN" -eq 1 ]]; then
         run_cmd "fallocate + mkswap + swapon $CI_TARGET/.setup-swapfile"
@@ -725,6 +736,8 @@ ci_verify_hardware() {
         return 1
     fi
     v_ok "hardware-configuration.nix present"
+
+    ci_storage_verify || return 1
 
     local want_root want_boot got_root got_boot
     want_root="$(blkid -s UUID -o value "$CI_ROOT_PART" 2>/dev/null || printf '')"
@@ -1215,6 +1228,9 @@ clean_install() {
         fi
 
         trap 'ci_on_error $LINENO' ERR
+        trap 'ci_exit_cleanup $?; show_cursor' EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
     fi
 
     # The installer ISO does not enable flakes, and nixos-install shells out to
@@ -1228,6 +1244,8 @@ clean_install() {
 
     ci_show_disks
     ci_select_target_disk || return 1
+    ci_storage_plan || return 1
+    ci_read_passphrase || return 1
 
     if [[ "$CI_DRY_RUN" -eq 0 ]]; then
         ci_confirm_destroy || return 1
@@ -1243,6 +1261,7 @@ clean_install() {
         info "Would place the repository at $CI_DEST."
     fi
 
+    ci_storage_settings || return 1
     ci_apply_identity || return 1
     ci_generate_hardware || return 1
     ci_prepare_target_store || return 1
