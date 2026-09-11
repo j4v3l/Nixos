@@ -229,9 +229,4 @@ Item {
     }
 
     // Poll faster while the menu is open
-    Binding {
-        target: Services.NetworkService
-        property: "fastPoll"
-        value: root.menuOpen
-    }
 }

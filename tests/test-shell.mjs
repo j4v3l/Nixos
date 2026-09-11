@@ -66,3 +66,27 @@ const historySource = fs.readFileSync(new URL('services/ClipboardService.qml', b
 assert.match(historySource, /actionProcess\.write\(root\.operation\.raw \+ "\\n"\)/);
 assert.doesNotMatch(historySource, /shellQuote|JSON\.stringify/);
 console.log('PASS: clipboard history sends external text through stdin');
+
+let discoveryStops = 0;
+const bluetooth = methods('services/BluetoothService.qml', {root: {fastPoll: true, discovering: true}});
+bluetooth.setDiscovering = () => { discoveryStops++; };
+popup.screens = [left, right];
+popup.open('bluetooth', 0, 0, left);
+bluetooth.fastPoll = popup.isOpen('bluetooth');
+bluetooth.syncDiscovery();
+popup.open('bluetooth', 0, 0, right);
+bluetooth.fastPoll = popup.isOpen('bluetooth');
+bluetooth.syncDiscovery();
+assert.equal(discoveryStops, 0, 'moving displays must not stop discovery');
+popup.screens = [left];
+popup.reconcileScreens();
+bluetooth.fastPoll = popup.isOpen('bluetooth');
+bluetooth.syncDiscovery();
+assert.equal(discoveryStops, 1, 'closing the global popup stops discovery');
+for (const name of ['Network', 'Bluetooth']) {
+    const view = fs.readFileSync(new URL(`modules/${name}.qml`, base), 'utf8');
+    assert.doesNotMatch(view, /property: "fastPoll"|onMenuOpenChanged/);
+    const service = fs.readFileSync(new URL(`services/${name}Service.qml`, base), 'utf8');
+    assert.match(service, /readonly property bool fastPoll: Core.PopupManager.isOpen/);
+}
+console.log('PASS: shared network/Bluetooth lifecycle across displays');

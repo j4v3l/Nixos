@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import "../core" as Core
 import Quickshell.Io
 
 // NetworkService
@@ -48,7 +49,7 @@ Singleton {
     property string lastError: ""
 
     // Poll faster while a menu is open
-    property bool fastPoll: false
+    readonly property bool fastPoll: Core.PopupManager.isOpen("network")
 
     signal connectFailed(string ssid, string message)
     signal connectSucceeded(string ssid)
@@ -599,13 +600,29 @@ Singleton {
         onTriggered: root.refresh()
     }
 
+    property Process monitor: Process {
+        command: ["nmcli", "monitor"]
+        running: true
+        stdout: SplitParser { onRead: eventRefresh.restart() }
+        onExited: monitorRetry.start()
+    }
+    property Timer monitorRetry: Timer {
+        interval: 5000
+        onTriggered: root.monitor.running = true
+    }
+    property Timer eventRefresh: Timer {
+        interval: 250
+        onTriggered: root.refresh()
+    }
+    onFastPollChanged: { if (root.fastPoll) root.refresh(); }
+
     property Timer pollTimer: Timer {
-        interval: root.fastPoll ? 3000 : 10000
+        interval: root.fastPoll ? 3000 : 30000
         running: true
         repeat: true
         triggeredOnStart: true
 
-        // fastPoll is bound to "the network popup is open" by Network.qml.
+        // One service owns refreshes across all bars.
         onTriggered: {
             if (root.fastPoll)
                 root.refresh();

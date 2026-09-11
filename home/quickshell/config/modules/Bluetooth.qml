@@ -155,15 +155,4 @@ Item {
         }
     }
 
-    Binding {
-        target: Services.BluetoothService
-        property: "fastPoll"
-        value: root.menuOpen
-    }
-
-    // Stop scanning when the menu closes — saves battery
-    onMenuOpenChanged: {
-        if (!root.menuOpen && Services.BluetoothService.discovering)
-            Services.BluetoothService.setDiscovering(false);
-    }
 }

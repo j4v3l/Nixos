@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import "../core" as Core
 import Quickshell.Io
 import Quickshell.Bluetooth
 
@@ -18,7 +19,12 @@ Singleton {
 
     readonly property bool discovering: root.adapter ? root.adapter.discovering : false
 
-    property bool fastPoll: false
+    readonly property bool fastPoll: Core.PopupManager.isOpen("bluetooth")
+
+    onFastPollChanged: root.syncDiscovery()
+    function syncDiscovery() {
+        if (!root.fastPoll && root.discovering) root.setDiscovering(false);
+    }
 
     property string lastError: ""
 
@@ -305,7 +311,7 @@ Singleton {
 
     property Timer syncTimer: Timer {
         interval: root.fastPoll ? 800 : 30000
-        running: true
+        running: root.available && root.powered
         repeat: true
         triggeredOnStart: true
         onTriggered: root.rebuildModel()
