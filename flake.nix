@@ -47,6 +47,18 @@
         path = ./templates/desktop;
         description = "Desktop host settings; run setup.sh configure to detect hardware.";
       };
+      templates.yoga-amd = {
+        path = ./templates/yoga-amd;
+        description = "Yoga 7 14AKP10 settings; generate hardware during setup.";
+      };
+      templates.yoga-intel = {
+        path = ./templates/yoga-intel;
+        description = "Yoga 7 14IRL8 settings; generate hardware during setup.";
+      };
+      templates.vm = {
+        path = ./templates/vm;
+        description = "Proxmox desktop guest; generate hardware during setup.";
+      };
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
       devShells.x86_64-linux.default =
         let

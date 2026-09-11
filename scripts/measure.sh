@@ -12,3 +12,5 @@ ps -C Hyprland,quickshell,qs,ollama -o pid,comm,%cpu,rss,etime || true
 nix path-info --closure-size --human-readable /run/current-system
 # Two samples avoid the initial cumulative CPU report.
 systemd-cgtop --batch --iterations=2 --delay=1 --depth=2 || true
+
+python3 "$(dirname "$0")/power.py" doctor || true

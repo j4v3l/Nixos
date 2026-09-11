@@ -24,6 +24,7 @@
     ./session
     ./monitoring
     ./nvidia
+    ./hardware/models.nix
     ./power
     ./stylix
     ./development

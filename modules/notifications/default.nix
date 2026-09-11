@@ -19,15 +19,4 @@
 
   programs.dconf.enable = true;
 
-  # Battery notifications
-
-  services.upower = {
-    percentageLow = 20;
-
-    percentageCritical = 10;
-
-    percentageAction = 5;
-
-    criticalPowerAction = "PowerOff";
-  };
 }

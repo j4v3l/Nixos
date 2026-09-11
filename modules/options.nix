@@ -26,7 +26,13 @@ in
       locale = string "en_US.UTF-8";
     };
     hardware = {
-      formFactor = choice [ "laptop" "desktop" ] "desktop";
+      formFactor = choice [ "laptop" "desktop" "vm" ] "desktop";
+      model = choice [ "generic" "yoga-14akp10" "yoga-14irl8" ] "generic";
+      inventory = mkOption {
+        type = types.attrsOf types.anything;
+        default = { };
+        description = "Reviewed setup inventory; never probed during evaluation.";
+      };
       cpu = choice [ "intel" "amd" "other" ] "other";
       gpus = mkOption {
         type = types.listOf (
@@ -74,6 +80,27 @@ in
       kernel = choice [ "stable" "latest" ] "stable";
       kreoRgb = mkEnableOption "the Kreo Hive keyboard";
     };
+    storage = {
+      layout = choice [ "plain" "encrypted" ] "plain";
+      swapGiB = mkOption {
+        type = types.ints.unsigned;
+        default = 0;
+      };
+      luksUuid = string "";
+      swapUuid = string "";
+    };
+    power = {
+      hibernate = mkEnableOption "persistent hibernation (requires generated resume storage)";
+      hibernateDelay = string "2h";
+      wifiPowerSave = mkOption {
+        type = types.nullOr types.bool;
+        default = null;
+      };
+      chargeConservation = choice [ "unchanged" "enabled" "disabled" ] "unchanged";
+      acProfile = choice [ "unchanged" "balanced" "power-saver" "performance" ] "unchanged";
+      batteryProfile = choice [ "unchanged" "balanced" "power-saver" "performance" ] "unchanged";
+    };
+    vm.graphics = choice [ "software" "accelerated" ] "software";
     features = {
       development = mkEnableOption "development tools";
       creator = mkEnableOption "creator applications";

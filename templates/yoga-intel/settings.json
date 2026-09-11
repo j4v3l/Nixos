@@ -1,0 +1,34 @@
+{
+  "identity": {
+    "username": "nixos",
+    "hostname": "yoga-intel",
+    "fullName": "",
+    "gitUser": "",
+    "email": "",
+    "timezone": "UTC",
+    "locale": "en_US.UTF-8"
+  },
+  "hardware": {
+    "formFactor": "laptop",
+    "model": "yoga-14irl8",
+    "cpu": "intel",
+    "gpus": [
+      "intel"
+    ],
+    "npu": "none"
+  },
+  "features": {
+    "development": false,
+    "creator": false,
+    "virtualisation": false,
+    "ai": false,
+    "wallpapers": false
+  },
+  "ai": {
+    "backend": "cpu"
+  },
+  "ssh": {
+    "enable": false,
+    "passwordAuthentication": false
+  }
+}
