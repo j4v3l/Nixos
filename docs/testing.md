@@ -110,3 +110,17 @@ disk usage, not resident memory.
 - Failed installation: leave the target mounted, inspect the reported failing
   step and generated hardware, and retry deliberately. A dry run cannot prove
   an image boots; use a disposable VM and retain a known working generation.
+
+## Yoga power and VM checks
+
+CI also builds both Yoga presets and the VM profile. `hibernate-vm` runs the
+actual encrypted formatting helpers on a disposable disk, boots from its
+LUKS/LVM root, hibernates to encrypted swap, and checks that a RAM-only marker
+survives resume but not a subsequent cold boot. `guest-vm` starts the full
+desktop with VirtIO graphics and software rendering. Test keys and autologin
+exist only in those VM fixtures.
+
+Use [the laptop validation procedure](laptops-and-vms.md) for battery
+measurements and real firmware tests. A passing VM test is not a passing Yoga
+suspend/resume test. Physical Yoga and Proxmox deployment results remain
+unavailable until collected on those machines.

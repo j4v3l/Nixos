@@ -44,3 +44,15 @@ hardware before displaying the settings review.
 For recovery, select an older generation in GRUB or run
 `sudo nixos-rebuild switch --rollback`. Do not raise `stateVersion` as part of a
 routine package upgrade.
+
+
+## Yoga and VM profiles
+
+The `laptop` host and its disk settings remain unchanged. Configure independent
+`yoga-amd`, `yoga-intel`, or `vm` hosts on their target machines. Existing installs
+are never repartitioned by configure/rebuild. Encryption requires an explicit
+fresh installation; do not copy fixture UUIDs or test keys into a real host.
+Laptop Wi-Fi power saving and idle display-off are now enabled; set
+`power.wifiPowerSave: false` if the wireless device regresses. Charge conservation
+and automatic AC/battery profile selection remain opt-in. Existing hosts without
+persistent resume storage retain power-off as their critical battery action.

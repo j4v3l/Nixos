@@ -9,7 +9,7 @@ when detection is incomplete; review choices before installing.
 
 | Setting | Values / behavior |
 | --- | --- |
-| `formFactor` | `laptop` or `desktop` |
+| `formFactor` | `laptop`, `desktop`, or `vm` |
 | `cpu` | `intel`, `amd`, or `other`; selects applicable microcode and KVM module |
 | `gpus` | Any applicable combination of `intel`, `amd`, `nvidia` |
 | `intelMediaDriver` | `modern` (default, intel-media-driver) or explicit `legacy` (intel-vaapi-driver) |
@@ -167,3 +167,5 @@ These checks catch configuration mistakes; they do not certify individual GPU
 models. Consult [Ollama's hardware documentation](https://docs.ollama.com/gpu)
 and confirm actual execution with `ollama ps` while a model is running. Ollama
 listens on localhost. NPU enablement does not change its backend.
+
+See [Yoga and VM profiles](laptops-and-vms.md) for model selection, battery policy, encrypted hibernation, and Proxmox setup.

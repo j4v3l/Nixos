@@ -1,6 +1,6 @@
 # Aurora NixOS
 
-A NixOS 26.05 configuration for x86-64 laptops and desktops, using Hyprland,
+A NixOS 26.05 configuration for x86-64 laptops, desktops, and Proxmox guests, using Hyprland,
 Quickshell, Home Manager, and Stylix. This fork keeps the desktop from
 [subha279/NixOS](https://github.com/subha279/NixOS) and adds per-machine settings,
 optional application bundles, screen locking, and the Crimson theme.
@@ -27,7 +27,10 @@ identity, bundles, and NVIDIA choices. Review driver compatibility in
 Clean installation erases the selected disk after confirmation. It creates a
 1 GiB EFI partition and an ext4 root partition, generates the target's hardware
 configuration, builds the system, installs GRUB, and prompts for a password.
-It is a whole-disk UEFI installer; it does not set up encryption or dual boot.
+Use `--layout encrypted` for LUKS2 with root and persistent swap LVs. Yoga
+presets default to that layout. Dual boot is not configured. See
+[Yoga power, hibernation, and Proxmox setup](docs/laptops-and-vms.md) for the
+14AKP10/14IRL8 commands, storage requirements, and runtime validation.
 
 Preview the workflow without writing files or changing disks:
 
@@ -120,8 +123,9 @@ unless overridden per host. Internal laptop screens remain enabled by default.
 | `SUPER+L` | Lock |
 | `SUPER+Z` | Zed, when the development bundle is enabled |
 
-Hypridle locks after ten minutes and before suspend. Automatic suspend is
-disabled. Battery, backlight, and Bluetooth controls appear only when available;
+Hypridle locks after ten minutes and before suspend, then powers displays off
+after eleven minutes. Automatic idle suspend is disabled; laptop lid policy is
+configured separately. Battery, backlight, and Bluetooth controls appear only when available;
 a desktop without a battery can still select power profiles.
 
 ## Themes
