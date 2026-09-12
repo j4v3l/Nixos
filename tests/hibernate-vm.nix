@@ -81,7 +81,7 @@ pkgs.testers.runNixOSTest {
             swapGiB = 2;
           };
         };
-        boot.initrd.luks.devices = lib.mkForce {
+        boot.initrd.luks.devices = lib.mkVMOverride {
           aurora = {
             device = "/dev/disk/by-uuid/${luksUuid}";
             keyFile = "/fixture.key";
