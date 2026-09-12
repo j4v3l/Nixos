@@ -32,6 +32,7 @@ pkgs.testers.runNixOSTest {
         gptfdisk
         dosfstools
         e2fsprogs
+        python3
       ];
       environment.etc."encrypted-install-test.sh".source =
         pkgs.writeShellScript "encrypted-install-test" ''
