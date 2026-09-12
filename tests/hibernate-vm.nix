@@ -98,7 +98,7 @@ pkgs.testers.runNixOSTest {
       machine.wait_for_unit("multi-user.target")
       machine.succeed("timeout 180 bash /etc/encrypted-install-test.sh")
       machine.succeed("${nodes.machine.specialisation.encrypted.configuration.system.build.toplevel}/bin/switch-to-configuration boot")
-      machine.succeed("entry=$(find /boot/loader/entries -maxdepth 1 -name '*-specialisation-encrypted.conf' -printf '%f\\n' | head -n1); test -n \"$entry\"; bootctl set-oneshot \"$entry\"")
+      machine.succeed("entry=$(find /boot/loader/entries -maxdepth 1 -name '*-specialisation-encrypted.conf' -printf '%f\\n' | head -n1); test -n \"$entry\"; bootctl set-default \"$entry\"")
       machine.succeed("sync")
       machine.crash()
       machine.wait_for_unit("multi-user.target")
