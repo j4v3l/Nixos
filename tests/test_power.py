@@ -139,6 +139,27 @@ ci_storage_cleanup
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), ['VG:-an aurora_test', 'CRYPT:close aurora'])
 
+    def test_storage_verification_uses_host_settings_for_outer_luks(self):
+        with tempfile.TemporaryDirectory() as destination:
+            result = bash(r'''set -euo pipefail
+source scripts/setup/installation.sh
+CI_LAYOUT=encrypted; CI_LUKS_PART=/dev/test2; CI_SWAP_DEVICE=/dev/test-swap
+CI_DEST="$TEST_DEST"; HOST=fixture
+mkdir -p "$CI_DEST/hosts/$HOST"
+printf '%s\n' 'swap=11111111-2222-3333-4444-555555555555' > "$CI_DEST/hosts/$HOST/hardware-configuration.nix"
+HOST_SETTINGS='{"storage":{"luksUuid":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","swapUuid":"11111111-2222-3333-4444-555555555555"}}'
+cryptsetup() { echo aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee; }
+blkid() { echo 11111111-2222-3333-4444-555555555555; }
+v_fail() { echo "FAIL:$*"; return 1; }
+v_ok() { echo "OK:$*"; }
+ci_storage_verify
+HOST_SETTINGS='{"storage":{"luksUuid":"ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee","swapUuid":"11111111-2222-3333-4444-555555555555"}}'
+if ci_storage_verify; then exit 90; fi
+''', {'TEST_DEST': destination})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('OK:Encrypted storage', result.stdout)
+        self.assertIn('FAIL:Host settings LUKS UUID does not match target', result.stdout)
+
     def test_passphrase_mismatch_and_missing_key_stop_format(self):
         result = bash('''source scripts/setup/installation.sh
 CI_LAYOUT=encrypted

@@ -45,6 +45,7 @@ pkgs.testers.runNixOSTest {
         CI_MKFS_FAT=mkfs.fat; CI_PARTITIONER=sgdisk
         CI_LAYOUT=encrypted; CI_VG=aurora_test; CI_SWAP_GIB=2
         CI_PASSPHRASE=$(cat ${key})
+        HOST_SETTINGS='{"hardware":{"formFactor":"laptop"}}'
         V_FAILED=0
         ci_partition
         ci_format
@@ -52,6 +53,7 @@ pkgs.testers.runNixOSTest {
         mkswap -U ${swapUuid} "$CI_SWAP_DEVICE"
         swapon "$CI_SWAP_DEVICE"
         cryptsetup luksUUID --batch-mode --uuid ${luksUuid} "$CI_LUKS_PART"
+        ci_storage_settings
         ci_mount
         ci_generate_hardware
         ci_verify_hardware

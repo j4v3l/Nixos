@@ -108,11 +108,18 @@ print(json.dumps(s))' "$CI_LAYOUT" "$luks" "$swap" "$CI_SWAP_GIB")" || return 1
 
 ci_storage_verify() {
     [[ "$CI_LAYOUT" == encrypted ]] || return 0
-    local file="$CI_DEST/hosts/$HOST/hardware-configuration.nix" luks swap
+    local file="$CI_DEST/hosts/$HOST/hardware-configuration.nix" luks swap configured_luks configured_swap
     luks="$(cryptsetup luksUUID "$CI_LUKS_PART")" || return 1
     swap="$(blkid -s UUID -o value "$CI_SWAP_DEVICE")" || return 1
     [[ -n "$luks" && -n "$swap" ]] || { v_fail "Missing encrypted storage UUID"; return 1; }
-    grep -Fq "$luks" "$file" || { v_fail "Generated hardware lacks target LUKS UUID"; return 1; }
+
+    configured_luks="$(printf '%s' "$HOST_SETTINGS" | python3 -c \
+        'import json,sys; print(json.load(sys.stdin)["storage"]["luksUuid"])')" || return 1
+    configured_swap="$(printf '%s' "$HOST_SETTINGS" | python3 -c \
+        'import json,sys; print(json.load(sys.stdin)["storage"]["swapUuid"])')" || return 1
+
+    [[ "$configured_luks" == "$luks" ]] || { v_fail "Host settings LUKS UUID does not match target"; return 1; }
+    [[ "$configured_swap" == "$swap" ]] || { v_fail "Host settings swap UUID does not match target"; return 1; }
     grep -Fq "$swap" "$file" || { v_fail "Generated hardware lacks persistent swap UUID"; return 1; }
     v_ok "Encrypted storage and persistent swap UUIDs match target."
 }
