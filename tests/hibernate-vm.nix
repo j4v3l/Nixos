@@ -43,7 +43,7 @@ pkgs.testers.runNixOSTest {
           error() { echo "$*" >&2; }; warning() { echo "$*" >&2; }
           v_ok() { :; }; v_info() { :; }; v_fail() { echo "$*" >&2; V_FAILED=1; }
           need_cmd() { command -v "$1" >/dev/null; }; host_stage_files() { :; }
-          HOST=disposable; CI_DISK=/dev/vdc; CI_ESP=/dev/vdc1; CI_ROOT_PART=/dev/vdc2
+          HOST=disposable; CI_DISK=/dev/vdb; CI_ESP=/dev/vdb1; CI_ROOT_PART=/dev/vdb2
           CI_TARGET=/mnt/disposable; CI_DEST=$CI_TARGET/repo
           CI_MKFS_FAT=mkfs.fat; CI_PARTITIONER=sgdisk
           CI_LAYOUT=encrypted; CI_VG=aurora_test; CI_SWAP_GIB=2
