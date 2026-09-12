@@ -20,7 +20,7 @@ pkgs.testers.runNixOSTest {
       virtualisation = {
         memorySize = 1024;
         emptyDiskImages = [ 8192 ];
-        useNixStoreImage = true;
+        mountHostNixStore = true;
         useBootLoader = true;
         useEFIBoot = true;
       };
