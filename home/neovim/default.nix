@@ -17,67 +17,69 @@
     withNodeJs = false;
     withPython3 = false;
 
-    plugins = with pkgs.vimPlugins; [
-      # Completion
+    plugins =
+      with pkgs.vimPlugins;
+      [
+        # Completion
 
-      blink-cmp
+        blink-cmp
 
-      # LSP / Code intelligence
+        # LSP / Code intelligence
 
-      nvim-lspconfig
+        nvim-lspconfig
 
-      # Syntax / Treesitter
+        # Syntax / Treesitter
 
-      (
-        if aurora.features.development then
-          nvim-treesitter.withAllGrammars
-        else
-          nvim-treesitter.withPlugins (p: [
-            p.bash
-            p.json
-            p.lua
-            p.nix
-            p.markdown
-            p.markdown_inline
-            p.query
-            p.vim
-            p.vimdoc
-            p.yaml
-            p.toml
-          ])
-      )
-      nvim-colorizer-lua
+        (
+          if aurora.features.development then
+            nvim-treesitter.withAllGrammars
+          else
+            nvim-treesitter.withPlugins (p: [
+              p.bash
+              p.json
+              p.lua
+              p.nix
+              p.markdown
+              p.markdown_inline
+              p.query
+              p.vim
+              p.vimdoc
+              p.yaml
+              p.toml
+            ])
+        )
+        nvim-colorizer-lua
 
-      # Search / Navigation
+        # Search / Navigation
 
-      telescope-nvim
+        telescope-nvim
 
-      telescope-fzf-native-nvim
+        telescope-fzf-native-nvim
 
-      plenary-nvim
-      nvim-web-devicons
+        plenary-nvim
+        nvim-web-devicons
 
-      # Git
+        # Git
 
-      gitsigns-nvim
+        gitsigns-nvim
 
-      # Formatting / Linting
+        # Formatting / Linting
 
-      conform-nvim
-      nvim-lint
+        conform-nvim
 
-      # UI
+        # UI
 
-      which-key-nvim
-      lualine-nvim
-      snacks-nvim
+        which-key-nvim
+        lualine-nvim
+        snacks-nvim
 
-      # File Manager
-      nvim-tree-lua
+        # File Manager
+        nvim-tree-lua
 
-      # Dashboard
-      alpha-nvim
-    ];
+        # Dashboard
+        alpha-nvim
+      ]
+      ++ lib.optionals aurora.features.development [ nvim-lint ];
 
     # Tools available directly to Neovim.
     extraPackages = lib.optionals aurora.features.development (
