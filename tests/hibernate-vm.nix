@@ -20,7 +20,7 @@ pkgs.testers.runNixOSTest {
       virtualisation = {
         memorySize = 1024;
         emptyDiskImages = [ 8192 ];
-        mountHostNixStore = true;
+        useNixStoreImage = true;
         useBootLoader = true;
         useEFIBoot = true;
       };
@@ -43,7 +43,7 @@ pkgs.testers.runNixOSTest {
           error() { echo "$*" >&2; }; warning() { echo "$*" >&2; }
           v_ok() { :; }; v_info() { :; }; v_fail() { echo "$*" >&2; V_FAILED=1; }
           need_cmd() { command -v "$1" >/dev/null; }; host_stage_files() { :; }
-          HOST=disposable; CI_DISK=/dev/vdb; CI_ESP=/dev/vdb1; CI_ROOT_PART=/dev/vdb2
+          HOST=disposable; CI_DISK=/dev/vdc; CI_ESP=/dev/vdc1; CI_ROOT_PART=/dev/vdc2
           CI_TARGET=/mnt/disposable; CI_DEST=$CI_TARGET/repo
           CI_MKFS_FAT=mkfs.fat; CI_PARTITIONER=sgdisk
           CI_LAYOUT=encrypted; CI_VG=aurora_test; CI_SWAP_GIB=2
@@ -106,6 +106,8 @@ pkgs.testers.runNixOSTest {
       machine.succeed("swap_id=$(stat -Lc '%t:%T' /dev/aurora_test/swap); swapon --show=NAME --noheadings | while read -r device; do test \"$(stat -Lc '%t:%T' \"$device\")\" = \"$swap_id\" && exit 0; done")
       machine.succeed("mkdir /run/resume-test; mount -t ramfs ramfs /run/resume-test; echo restored > /run/resume-test/marker")
       machine.execute("systemctl hibernate >&2 &", check_return=False)
+      assert machine.process is not None
+      machine.process.wait(timeout=180)
       machine.wait_for_shutdown()
       machine.start()
       machine.succeed("grep restored /run/resume-test/marker")
