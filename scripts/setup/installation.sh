@@ -723,6 +723,10 @@ ci_fs_uuid() {
     ci_fs_block "$1" "$2" | sed -nE 's|.*by-uuid/([^"]+)".*|\1|p' | head -n1
 }
 
+ci_fs_device() {
+    ci_fs_block "$1" "$2" | sed -nE 's|.*device[[:space:]]*=[[:space:]]*"([^"]+)".*|\1|p' | head -n1
+}
+
 ci_fs_type() {
     ci_fs_block "$1" "$2" | sed -nE 's|.*fsType[[:space:]]*=[[:space:]]*"([^"]+)".*|\1|p' | head -n1
 }
@@ -739,22 +743,28 @@ ci_verify_hardware() {
 
     ci_storage_verify || return 1
 
-    local want_root want_boot got_root got_boot
+    local want_root want_boot got_root got_boot root_device boot_device root_source boot_source root_target boot_target
     want_root="$(blkid -s UUID -o value "$CI_ROOT_PART" 2>/dev/null || printf '')"
     want_boot="$(blkid -s UUID -o value "$CI_ESP" 2>/dev/null || printf '')"
     got_root="$(ci_fs_uuid "$f" "/")"
     got_boot="$(ci_fs_uuid "$f" "/boot")"
+    root_device="$(ci_fs_device "$f" "/")"
+    boot_device="$(ci_fs_device "$f" "/boot")"
+    root_source="$(readlink -f "$root_device" 2>/dev/null || printf '')"
+    boot_source="$(readlink -f "$boot_device" 2>/dev/null || printf '')"
+    root_target="$(readlink -f "$CI_ROOT_PART" 2>/dev/null || printf '')"
+    boot_target="$(readlink -f "$CI_ESP" 2>/dev/null || printf '')"
 
-    if [[ -n "$want_root" && "$got_root" == "$want_root" ]]; then
-        v_ok "root UUID matches $CI_ROOT_PART  ($want_root)"
+    if [[ -n "$want_root" && ( "$got_root" == "$want_root" || ( -n "$root_source" && "$root_source" == "$root_target" ) ) ]]; then
+        v_ok "root filesystem source matches $CI_ROOT_PART  ($want_root)"
     else
-        v_fail "root UUID mismatch: config=${got_root:-none} target=${want_root:-unknown}"
+        v_fail "root filesystem mismatch: config=${root_device:-none} target=$CI_ROOT_PART"
     fi
 
-    if [[ -n "$want_boot" && "$got_boot" == "$want_boot" ]]; then
-        v_ok "boot UUID matches $CI_ESP  ($want_boot)"
+    if [[ -n "$want_boot" && ( "$got_boot" == "$want_boot" || ( -n "$boot_source" && "$boot_source" == "$boot_target" ) ) ]]; then
+        v_ok "boot filesystem source matches $CI_ESP  ($want_boot)"
     else
-        v_fail "boot UUID mismatch: config=${got_boot:-none} target=${want_boot:-unknown}"
+        v_fail "boot filesystem mismatch: config=${boot_device:-none} target=$CI_ESP"
     fi
 
     if [[ "$(ci_fs_type "$f" "/")" == "ext4" ]]; then
